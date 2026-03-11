@@ -72,7 +72,7 @@
         <h1 class="text-4xl font-black font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-6 tracking-tighter drop-shadow-lg">ARENA V14</h1>
         
         <div id="login-box" class="glass p-6 rounded-3xl w-full max-w-sm shadow-2xl">
-            <input id="l-email" placeholder="E-Posta Adresi veya Admin" class="input-field mb-3">
+            <input id="l-email" placeholder="E-Posta Adresiniz" class="input-field mb-3">
             <input id="l-pass" type="password" placeholder="Şifre" class="input-field mb-4">
             <button onclick="handleLogin()" class="w-full bg-blue-600 py-4 rounded-2xl font-black mb-3 active:scale-95 transition-all text-sm tracking-widest">GİRİŞ YAP</button>
             <button onclick="toggleAuthMode('register')" class="w-full border border-blue-500 text-blue-400 py-3 rounded-2xl font-bold active:scale-95 transition-all text-xs">YENİ HESAP OLUŞTUR</button>
@@ -220,9 +220,7 @@
         <button onclick="showPage('admin-page')" class="mb-6 text-slate-400"><i class="fa-solid fa-arrow-left mr-2"></i>Geri Dön</button>
         <h2 class="text-2xl font-black font-orbitron text-purple-500 mb-6">PATRON AYARLARI</h2>
         <div class="stat-card">
-            <p class="text-xs text-slate-400 mb-2">Giriş Şifresini Değiştir</p>
-            <input id="admin-new-pass" type="text" placeholder="Yeni Şifre" class="input-field">
-            <button onclick="updateAdminPass()" class="w-full bg-purple-600 py-3 rounded-xl font-bold mt-2">ŞİFREYİ GÜNCELLE</button>
+            <p class="text-xs text-slate-400 mb-2">Güvenlik bilgileriniz artık Firebase üzerinden yönetilmektedir.</p>
         </div>
     </div>
 
@@ -594,18 +592,9 @@
             const u = document.getElementById('l-email').value.trim();
             const p = document.getElementById('l-pass').value;
             
-            if(u.toLowerCase() === "admin") { 
-                db.ref('system/admin/password').once('value', function(s) { 
-                    if(p === (s.val() || "123456")) { 
-                        isAdmin = true; 
-                        try { localStorage.setItem('masterAdmin', 'true'); } catch(e) {}
-                        document.getElementById('wa-btn').classList.add('hidden-element');
-                        startAdmin(); 
-                    } else { alert("Hatalı Şifre!"); }
-                }); 
-                return; 
-            }
-            
+            if(!u || !p) { return alert("Lütfen E-posta ve şifre girin!"); }
+
+            // Güvenli Firebase Auth Girişi (Eski açık kapatıldı)
             auth.signInWithEmailAndPassword(u.includes('@') ? u : u + "@a.v14", p).then(function() { 
                 db.ref('users/'+auth.currentUser.uid).once('value', function(s) { 
                     const uData = s.val();
@@ -616,6 +605,7 @@
                         document.getElementById('wa-btn').classList.add('hidden-element');
                         startAdmin();
                     } else { 
+                        isAdmin = false;
                         startLobby(); 
                     }
                 }); 
@@ -744,7 +734,6 @@
             });
         }
         
-        function updateAdminPass() { const p = document.getElementById('admin-new-pass').value; if(p.length >= 6) { db.ref('system/admin/password').set(p).then(function() { alert("Şifre güncellendi!"); }); } }
         function updateAnnouncement() { db.ref('system/config/announcement').set(document.getElementById('admin-announcement').value); alert("Duyuru yayınlandı!"); }
         function updateWhatsapp() { db.ref('system/config/whatsapp').set(document.getElementById('admin-whatsapp').value); alert("Numara kaydedildi!"); }
         function updateDailyReward() { db.ref('system/config/dailyReward').set(parseInt(document.getElementById('admin-daily-amount').value)); alert("Kaydedildi!"); }
@@ -1126,18 +1115,30 @@
         
         function logout() { 
             isAdmin = false; 
-            try { localStorage.removeItem('masterAdmin'); } catch(e) {} 
             auth.signOut().then(function() { location.reload(); }); 
         }
         
-        let isMaster = false;
-        try { if(localStorage.getItem('masterAdmin') === 'true') { isMaster = true; } } catch(e) {}
-        
-        if(isMaster) {
-            isAdmin = true;
-            document.getElementById('wa-btn').classList.add('hidden-element');
-            startAdmin();
-        }
+        // OTOMATİK GİRİŞ (Oturum Hatırlama) - Yeni eklendi!
+        auth.onAuthStateChanged(function(user) {
+            if(user) {
+                db.ref('users/'+user.uid).once('value', function(s) {
+                    const uData = s.val();
+                    if(uData && uData.status === 'banned') { 
+                        auth.signOut(); 
+                    } else if(uData && (uData.role === 'mod' || uData.role === 'admin')) {
+                        isAdmin = true;
+                        document.getElementById('wa-btn').classList.add('hidden-element');
+                        startAdmin();
+                    } else if (uData) {
+                        isAdmin = false;
+                        startLobby();
+                    }
+                });
+            } else {
+                showPage('auth-page');
+            }
+        });
+
     </script>
 </body>
 </html>
