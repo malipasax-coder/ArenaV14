@@ -56,9 +56,17 @@
         
         .wa-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background-color: #25D366; color: white; border-radius: 50px; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0px 0px 15px rgba(37, 211, 102, 0.5); z-index: 100; animation: pulse-green 2s infinite; cursor: pointer; }
         @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+
+        #maintenance-overlay { z-index: 9999; background: #020617; }
     </style>
 </head>
 <body>
+
+    <div id="maintenance-overlay" class="modal hidden-element text-center">
+        <i class="fa-solid fa-hammer text-6xl text-yellow-500 mb-6 animate-bounce"></i>
+        <h2 class="text-3xl font-black font-orbitron text-yellow-400 mb-2">BAKIM MOLASI</h2>
+        <p class="text-sm text-slate-400">Arena V14 altyapısı şu an güncelleniyor.<br>Çok kısa bir süre sonra döneceğiz.</p>
+    </div>
 
     <div id="auth-page" class="page active flex flex-col justify-center items-center">
         <h1 class="text-4xl font-black font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-6 tracking-tighter drop-shadow-lg">ARENA V14</h1>
@@ -96,12 +104,17 @@
     </div>
 
     <div id="admin-page" class="page">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-center mb-4">
             <h1 class="text-xl font-black font-orbitron text-purple-500 uppercase"><i class="fa-solid fa-chess-king mr-2"></i>Patron Paneli</h1>
             <div class="flex gap-2">
                 <button onclick="showPage('admin-profile-page')" class="w-10 h-10 glass rounded-full text-blue-400"><i class="fa-solid fa-user-shield"></i></button>
                 <button onclick="logout()" class="w-10 h-10 glass rounded-full text-red-500"><i class="fa-solid fa-power-off"></i></button>
             </div>
+        </div>
+
+        <div class="stat-card border-red-500/50 mb-4 bg-red-500/5 text-center">
+            <h3 class="text-xs font-bold text-red-500 mb-2 uppercase tracking-widest"><i class="fa-solid fa-power-off mr-2"></i>Sistem Şalteri</h3>
+            <button id="admin-maintenance-btn" onclick="toggleMaintenance()" class="w-full bg-red-600 py-3 rounded-xl font-black text-xs tracking-widest">BAKIM MODUNU AÇ</button>
         </div>
         
         <div class="stat-card border-l-4 border-yellow-500 mb-4 bg-yellow-500/5">
@@ -239,6 +252,7 @@
                 </div>
             </div>
             <div class="flex gap-2">
+                <button onclick="toggleMute()" id="mute-btn" class="w-10 h-10 glass rounded-xl text-slate-300"><i class="fa-solid fa-volume-high"></i></button>
                 <button onclick="openModal('chat-modal')" class="w-10 h-10 glass rounded-xl text-blue-400 relative"><i class="fa-solid fa-message"></i></button>
                 <button onclick="showPage('profile-page')" class="w-10 h-10 glass rounded-xl text-slate-300"><i class="fa-solid fa-gear"></i></button>
                 <button onclick="logout()" class="w-10 h-10 glass rounded-xl text-slate-500"><i class="fa-solid fa-power-off"></i></button>
@@ -251,7 +265,7 @@
             <p class="text-[10px] text-slate-400 font-black mt-2 tracking-[0.2em]">ELMAS BAKİYESİ</p>
         </div>
         
-        <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="grid grid-cols-2 gap-3 mb-3">
             <button onclick="claimDailyReward()" class="stat-card flex items-center justify-center gap-2 bg-yellow-500/10 active:scale-95 p-3">
                 <i class="fa-solid fa-gift text-yellow-500 text-lg"></i><span class="text-[10px] font-bold">GÜNLÜK ÖDÜL</span>
             </button>
@@ -265,6 +279,15 @@
                 <i class="fa-solid fa-money-bill-transfer text-emerald-500 text-lg"></i><span class="text-[10px] font-bold">ELMAS BOZDUR</span>
             </button>
         </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <button onclick="openModal('store-modal')" class="stat-card flex items-center justify-center gap-2 bg-pink-500/10 border-pink-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-cart-shopping text-pink-500 text-lg"></i><span class="text-[10px] font-bold text-pink-400">VIP MAĞAZA</span>
+            </button>
+            <button onclick="openModal('rules-modal')" class="stat-card flex items-center justify-center gap-2 bg-slate-500/10 border-slate-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-circle-question text-slate-400 text-lg"></i><span class="text-[10px] font-bold text-slate-300">NASIL OYNANIR?</span>
+            </button>
+        </div>
         
         <div class="flex justify-between items-center mb-3">
             <h3 class="text-slate-400 font-black text-[10px] tracking-widest uppercase flex items-center gap-2">
@@ -273,6 +296,48 @@
             <span id="tour-status-text" class="text-[9px] font-bold text-red-400">KAPALI</span>
         </div>
         <div id="rooms-list" class="space-y-3 mb-6"></div>
+    </div>
+
+    <div id="store-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-pink-500/30">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-black font-orbitron text-pink-400"><i class="fa-solid fa-cart-shopping mr-2"></i>VIP MAĞAZA</h2>
+                <button onclick="closeModal('store-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <p class="text-[10px] text-slate-400 mb-4 text-center">Satın aldığınız renkler Global Chat üzerinde isminizi o renge boyar.</p>
+            
+            <div class="space-y-3">
+                <div class="bg-black/50 p-3 rounded-xl border border-red-500/30 flex justify-between items-center">
+                    <span class="font-black text-red-500 uppercase text-xs">KIRMIZI İSİM</span>
+                    <button onclick="buyColor('#ef4444', 500, 'Kırmızı İsim')" class="bg-red-600 px-4 py-2 rounded-lg text-[10px] font-bold text-white shadow-[0_0_10px_rgba(239,68,68,0.5)]">500 💎</button>
+                </div>
+                <div class="bg-black/50 p-3 rounded-xl border border-yellow-500/30 flex justify-between items-center">
+                    <span class="font-black text-yellow-400 uppercase text-xs">ALTIN İSİM</span>
+                    <button onclick="buyColor('#facc15', 1000, 'Altın İsim')" class="bg-yellow-600 px-4 py-2 rounded-lg text-[10px] font-bold text-white shadow-[0_0_10px_rgba(250,204,21,0.5)]">1000 💎</button>
+                </div>
+                <div class="bg-black/50 p-3 rounded-xl border border-purple-500/30 flex justify-between items-center">
+                    <span class="font-black text-purple-400 uppercase text-xs">EFSANEVİ MOR</span>
+                    <button onclick="buyColor('#c084fc', 2000, 'Efsanevi Mor İsim')" class="bg-purple-600 px-4 py-2 rounded-lg text-[10px] font-bold text-white shadow-[0_0_10px_rgba(192,132,252,0.5)]">2000 💎</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-slate-500/30">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-black font-orbitron text-slate-300"><i class="fa-solid fa-circle-question mr-2"></i>KURALLAR</h2>
+                <button onclick="closeModal('rules-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="text-xs text-slate-300 space-y-3 h-[40vh] overflow-y-auto pr-2">
+                <p><b>1. Oyunun Amacı:</b> 30 saniye içinde ekranda beliren mavi hedeflere olabildiğince hızlı tıklayın. (Mavi hedefler 1 puan, Altın hedefler 3 puandır).</p>
+                <p><b>2. Elmas (💎) Değeri:</b> Sistemdeki 1 Elmas, 1 TL değerindedir. Elmaslarınızı Bozdur ekranından IBAN'ınıza çekebilirsiniz.</p>
+                <p><b>3. Kesinti ve Ödül:</b> Sistem her odada kazanan ödülden sabit %25 komisyon keser. Kalan miktar kazanana aktarılır.</p>
+                <p><b>4. Çevrim Şartı:</b> Satın aldığınız veya kazandığınız elmasları nakde çevirebilmek için, yatırdığınız tutar kadar oyun oynamalısınız. (Örn: 1000 Elmas alırsanız, toplam 1000 Elmaslık maça girmeden çekim yapamazsınız).</p>
+                <p><b>5. Hile Koruması:</b> Oyunda otomatik tıklayıcı (Makro) kullanmak yasaktır. Sistem milisaniye kontrolü yapar ve hile tespit ederse tıklamalarınızı puandan saymaz.</p>
+                <p><b>6. Lig Bonusları:</b> Oyun oynadıkça XP kazanır ve seviye atlarsınız. Liginiz yükseldikçe, elmas satın alımlarınızda ekstra %40'a varan bonuslar hesabınıza otomatik yüklenir.</p>
+            </div>
+        </div>
     </div>
 
     <div id="leaderboard-modal" class="modal">
@@ -345,9 +410,11 @@
                 <h2 class="font-black font-orbitron text-emerald-400">BOZDUR</h2>
                 <button onclick="closeModal('withdraw-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
+            
             <div id="wager-warning" class="bg-red-500/20 border border-red-500 p-3 rounded-xl mb-4 hidden text-xs font-bold text-red-400 text-center">
                 ÇEVRİM ŞARTI EKSİK! <br><span id="wager-amount" class="text-white">0</span> 💎 daha oynamalısınız.
             </div>
+            
             <p class="text-[10px] text-slate-400 mb-4">Sadece turnuva saatleri dışında bozdurma yapabilirsiniz.</p>
             <input id="w-amount" type="number" placeholder="Miktar (💎)" class="input-field mb-4 text-lg font-bold">
             <button onclick="submitWithdraw()" class="w-full bg-emerald-600 py-3 rounded-xl font-bold text-sm">TALEBİ OLUŞTUR</button>
@@ -436,9 +503,10 @@
         let currentPlayerLevelInfo = { bonus: 5 }; 
         let lastClickTime = 0;
         
-        // HİLE VE BUG ENGELLEYİCİ BAYRAKLAR
         let isSearching = false; 
         let isPlaying = false;
+        let isMuted = false; // YENİ: Ses kontrol durumu
+        let isMaintenanceMode = false; // YENİ: Bakım durumu
 
         function getLevelInfo(xpTotal) {
             let xp = xpTotal || 0; 
@@ -459,8 +527,21 @@
             if(audioCtx.state === 'suspended') { audioCtx.resume(); }
         }
         
+        // YENİ: Sesi Aç/Kapat Butonu Fonksiyonu
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+            if(isMuted) {
+                btn.innerHTML = '<i class="fa-solid fa-volume-xmark text-red-500"></i>';
+                btn.classList.add('border', 'border-red-500/50');
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                btn.classList.remove('border', 'border-red-500/50');
+            }
+        }
+
         function playSfx(type) {
-            if(!audioCtx) return; 
+            if(!audioCtx || isMuted) return; // Eğer ses kapalıysa hiçbir şey çalma
             const osc = audioCtx.createOscillator(); 
             const gain = audioCtx.createGain(); 
             osc.connect(gain); 
@@ -477,6 +558,24 @@
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime); 
                 osc.start(); osc.stop(audioCtx.currentTime + 0.2); 
             }
+        }
+
+        // YENİ: Mağazadan VIP İsim Rengi Satın Alma
+        function buyColor(colorHex, price, colorName) {
+            if((userData.diamonds||0) < price) { return alert("Yetersiz bakiye!"); }
+            if(userData.chatColor === colorHex) { return alert("Zaten bu renge sahipsin!"); }
+            
+            if(confirm(`${colorName} rengini ${price} Elmas karşılığında satın almak istiyor musun?`)) {
+                db.ref('users/' + currentUserUid + '/diamonds').transaction(v => v - price);
+                db.ref('users/' + currentUserUid + '/chatColor').set(colorHex);
+                alert("Satın alma başarılı! Artık chatte ismin bu renk görünecek.");
+                closeModal('store-modal');
+            }
+        }
+
+        // YENİ: Admin Bakım Modu Şalterini Kapat/Aç
+        function toggleMaintenance() {
+            db.ref('system/config/maintenance').set(!isMaintenanceMode);
         }
 
         function showPage(id) { 
@@ -574,6 +673,7 @@
 
         function startAdmin() {
             showPage('admin-page'); document.getElementById('wa-btn').classList.add('hidden-element');
+            
             db.ref('system/accounting').on('value', s => { 
                 const a = s.val() || {}; 
                 document.getElementById('admin-total-deposit').innerText = (a.totalDeposit||0)+" ₺"; 
@@ -581,6 +681,7 @@
                 document.getElementById('admin-net-vault').innerText = ((a.totalDeposit||0)-(a.totalWithdraw||0))+" ₺"; 
                 document.getElementById('admin-sys-commission').innerText = (a.commission||0)+" 💎"; 
             });
+            
             db.ref('system/config').on('value', s => { 
                 const c = s.val() || {}; 
                 document.getElementById('admin-daily-amount').value = c.dailyReward || 50; 
@@ -589,31 +690,46 @@
                 document.getElementById('admin-tour-start').value = tourStart; 
                 document.getElementById('admin-tour-end').value = tourEnd; 
                 adminWhatsappNum = c.whatsapp || ""; 
-                document.getElementById('admin-whatsapp').value = adminWhatsappNum; checkTournamentTime(); 
+                document.getElementById('admin-whatsapp').value = adminWhatsappNum; 
+                checkTournamentTime(); 
+
+                // Admin Ekranında Bakım Şalteri Durumunu Güncelle
+                isMaintenanceMode = c.maintenance || false;
+                const mBtn = document.getElementById('admin-maintenance-btn');
+                if(mBtn) {
+                    mBtn.innerText = isMaintenanceMode ? "BAKIM MODUNU KAPAT" : "BAKIM MODUNU AÇ";
+                    mBtn.className = isMaintenanceMode ? "w-full bg-green-600 py-3 rounded-xl font-black text-xs tracking-widest" : "w-full bg-red-600 py-3 rounded-xl font-black text-xs tracking-widest";
+                }
             });
+            
             db.ref('users').on('value', s => { 
                 allUsers = s.val() || {}; let b = 0; 
                 Object.values(allUsers).forEach(u => b += (u.diamonds || 0)); 
                 document.getElementById('admin-total-users').innerText = Object.keys(allUsers).length; 
                 document.getElementById('admin-players-balance').innerText = b+" 💎"; renderUsers(allUsers); 
             });
+            
             db.ref('system/deposit_requests').on('value', s => { 
                 let h = ''; s.forEach(c => { const r = c.val(); h += `<div class="bg-slate-800 p-2 rounded text-[10px] flex justify-between"><span>${r.name}: ${r.total} 💎</span><button onclick="approveDeposit('${c.key}','${r.uid}',${r.amount},${r.total},'${r.name}')" class="bg-emerald-600 px-2 py-1 rounded">ONAYLA</button></div>`; }); 
                 document.getElementById('admin-deposit-list').innerHTML = h || 'Talep Yok'; 
             });
+            
             db.ref('system/withdraw_requests').on('value', s => { 
                 let h = ''; s.forEach(c => { const r = c.val(); h += `<div class="bg-slate-800 p-2 rounded text-[10px] flex justify-between"><span>${r.name}: ${r.amount} 💎</span><button onclick="approveWithdraw('${c.key}','${r.name}',${r.amount})" class="bg-orange-600 px-2 py-1 rounded">ÖDENDİ</button></div>`; }); 
                 document.getElementById('admin-withdraw-list').innerHTML = h || 'Talep Yok'; 
             });
+            
             db.ref('system/archive').limitToLast(15).on('value', s => { 
                 let arr = []; s.forEach(c => arr.push(c.val())); arr.reverse(); let h = ''; 
                 arr.forEach(a => { h += `<p class="text-[7px] border-b border-slate-700 pb-1">${a.date} | ${a.name} | ${a.amount} ${a.type=='yatirim'?'₺':'💎'}</p>`; }); 
                 document.getElementById('admin-archive-list').innerHTML = h; 
             });
+            
             db.ref('system/games').on('value', s => { 
                 let h = ''; s.forEach(c => { const g = c.val(); if(g.status == 'playing') { h += `<p class="text-[8px] bg-slate-800 p-1">${g.p1Name} vs ${g.p2Name}</p>`; } }); 
                 document.getElementById('admin-live-radar').innerHTML = h || 'Aktif maç yok'; 
             });
+            
             db.ref('system/rooms').on('value', s => { 
                 let h = ''; s.forEach(c => { const r = c.val(); h += `<div class="flex justify-between text-[9px] bg-slate-800 p-1 mb-1"><span>${r.name} (${r.entryFee})</span><button onclick="db.ref('system/rooms/${c.key}').remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div>`; }); 
                 document.getElementById('admin-rooms-list').innerHTML = h; 
@@ -675,15 +791,33 @@
             currentUserUid = auth.currentUser.uid; 
             showPage('lobby-page'); document.getElementById('wa-btn').classList.remove('hidden-element');
             
-            // Hayalet maç bug'ı temizliği (Sisteme girildiğinde geçmiş asılı kalmış oyun silinir)
             db.ref('system/active_players/' + currentUserUid).remove();
             isSearching = false;
             isPlaying = false;
 
             db.ref('system/config').on('value', s => { 
-                const c = s.val() || {}; systemDailyReward = c.dailyReward || 50; systemBonusRate = c.bonusRate || 0; adminWhatsappNum = c.whatsapp || ""; document.getElementById('lobby-announcement').innerText = c.announcement || "Hoşgeldiniz!"; 
+                const c = s.val() || {}; 
+                systemDailyReward = c.dailyReward || 50; 
+                systemBonusRate = c.bonusRate || 0; 
+                adminWhatsappNum = c.whatsapp || ""; 
+                document.getElementById('lobby-announcement').innerText = c.announcement || "Hoşgeldiniz!"; 
+                
                 if(c.tournament) { tourStart = c.tournament.start || "20:00"; tourEnd = c.tournament.end || "23:59"; checkTournamentTime(); } 
+
+                // YENİ: Oyuncular için Bakım Modu Kontrolü (Adminler Hariç)
+                isMaintenanceMode = c.maintenance || false;
+                const mOverlay = document.getElementById('maintenance-overlay');
+                if(!isAdmin) {
+                    if(isMaintenanceMode && !isPlaying) {
+                        mOverlay.classList.remove('hidden-element');
+                        mOverlay.classList.add('flex');
+                    } else {
+                        mOverlay.classList.add('hidden-element');
+                        mOverlay.classList.remove('flex');
+                    }
+                }
             });
+
             db.ref('users/'+currentUserUid).on('value', s => { 
                 userData = s.val(); 
                 if(userData && userData.status === 'banned') { auth.signOut(); location.reload(); } 
@@ -697,26 +831,35 @@
                     document.getElementById('player-league-text').innerHTML = `SEVİYE ${l.level} | <span class="${l.color}">${l.league}</span>`; document.getElementById('player-xp-bar').style.width = l.percent+'%'; document.getElementById('player-xp-text').innerText = l.currentXp+" / "+l.nextXp+" XP"; 
                 } 
             });
+
             db.ref('users/' + currentUserUid + '/history').limitToLast(10).on('value', s => { 
                 let h = ''; let arr = []; s.forEach(c => arr.push(c.val())); arr.reverse(); 
                 arr.forEach(m => { h += `<div class="bg-black/40 p-2 rounded-xl text-[8px] flex justify-between border-b border-slate-800"><span>vs ${m.opp}</span><span class="${m.result=='KAZANDIN'?'text-green-400':'text-red-400'}">${m.pnl}</span></div>`; }); 
                 document.getElementById('prof-history-list').innerHTML = h || 'Oynanmış maç yok.'; 
             });
+
             db.ref('system/rooms').on('value', s => { 
                 let h = ''; s.forEach(c => { const r = c.val(); h += `<div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}')" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 cursor-pointer mb-2"><div><p class="font-black text-sm">${r.name}</p><p class="text-[10px] text-slate-400">${r.entryFee} 💎 GİRİŞ -> ${r.reward} 💎 ÖDÜL</p></div><i class="fa-solid fa-play text-blue-500"></i></div>`; }); 
                 document.getElementById('rooms-list').innerHTML = h; 
             });
+
+            // YENİ: Satın alınan renk ile chat'te yazma
             db.ref('system/chat').limitToLast(20).on('value', s => { 
-                const box = document.getElementById('chat-messages'); let h = ''; s.forEach(c => { const m = c.val(); h += `<div class="chat-msg ${m.uid==currentUserUid?'me':''}"><span class="font-bold text-[8px] uppercase">${m.name}</span><br>${m.text}</div>`; }); 
+                const box = document.getElementById('chat-messages'); let h = ''; 
+                s.forEach(c => { 
+                    const m = c.val(); 
+                    const nameColor = m.color || '#60a5fa'; // Default blue if no VIP color
+                    h += `<div class="chat-msg ${m.uid==currentUserUid?'me':''}"><span class="font-bold text-[8px] uppercase" style="color: ${nameColor}">${m.name}</span><br>${m.text}</div>`; 
+                }); 
                 box.innerHTML = h; box.scrollTop = box.scrollHeight; 
             });
+
             db.ref('users').orderByChild('diamonds').limitToLast(10).on('value', s => { 
                 let arr = []; s.forEach(c => arr.push(c.val())); arr.reverse(); let h = ''; 
                 arr.forEach((u, i) => { h += `<div class="flex justify-between text-[10px] p-2 border-b border-slate-800"><span>#${i+1} ${u.username}</span><span class="text-cyan-400">${u.diamonds||0} 💎</span></div>`; }); 
                 document.getElementById('leaderboard-list').innerHTML = h; 
             });
             
-            // Eğer veritabanından sana bir oyun ID'si gelirse ve zaten oynamıyorsan maçı başlat
             db.ref('system/active_players/' + currentUserUid + '/game').on('value', s => { 
                 if(s.val() && !isPlaying) startGame(s.val()); 
             }); 
@@ -730,27 +873,36 @@
         function openWithdrawModal() { if(isTourActive) { return alert("Şu an turnuva saatindeyiz, çekim yapılamaz!"); } if((userData.wagerNeeded||0) > 0) { document.getElementById('wager-warning').classList.remove('hidden'); document.getElementById('wager-amount').innerText = userData.wagerNeeded; } else { document.getElementById('wager-warning').classList.add('hidden'); } openModal('withdraw-modal'); }
         function submitWithdraw() { const a = parseInt(document.getElementById('w-amount').value); if(!a || a < 100) return alert("Minimum bozdurma tutarı 100 Elmas."); if((userData.wagerNeeded||0) > 0) return alert("Çevrim şartı tamamlanmadı."); if(userData.diamonds < a) return alert("Yetersiz bakiye."); db.ref('users/' + currentUserUid + '/diamonds').transaction(v => v - a); db.ref('system/withdraw_requests').push({ uid: currentUserUid, name: userData.username, amount: a, iban: userData.iban || "-", phone: userData.phone || "-", time: Date.now() }); closeModal('withdraw-modal'); alert("Çekim talebiniz alındı!"); }
         function claimDailyReward() { const t = new Date().toDateString(); if(userData.lastReward == t) { return alert("Bugün ödülünü zaten aldın!"); } db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v||0) + systemDailyReward); db.ref('users/' + currentUserUid + '/lastReward').set(t); alert(`Tebrikler! ${systemDailyReward} 💎 kazandın.`); }
-        function sendChatMessage() { const i = document.getElementById('chat-input'); const t = i.value.trim(); if(t) { db.ref('system/chat').push({ uid: currentUserUid, name: userData.username, text: t }); i.value = ''; } }
+        
+        function sendChatMessage() { 
+            const i = document.getElementById('chat-input'); const t = i.value.trim(); 
+            if(t) { 
+                db.ref('system/chat').push({ 
+                    uid: currentUserUid, 
+                    name: userData.username, 
+                    text: t,
+                    color: userData.chatColor || '#60a5fa' // YENİ: Kayıtlı chat rengi (Satın alınmadıysa mavi)
+                }); 
+                i.value = ''; 
+            } 
+        }
 
-        // --- YENİ ÇÖKMEYEN VE PEŞİN KESİNTİLİ MATCHMAKING ---
         function joinMatch(rid, entry, reward, name) { 
             initAudio(); 
             if(!isTourActive) return alert("Turnuva kapalı!");
-            if(isSearching || isPlaying) return; // Spam koruması
+            if(isMaintenanceMode && !isAdmin) return alert("Sistem şu an bakım modunda!"); // Bakım modu kalkanı
+            if(isSearching || isPlaying) return; 
             if((userData.diamonds||0) < entry) return alert("Yetersiz Bakiye!"); 
             
             isSearching = true;
             currentMatchRoom = { rid, entry, reward, name }; 
             
-            // 1. Önce parayı bakiyeden "Peşin" kes (Bug'ı bitiren kod bu)
             db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v || 0) - entry).then(() => {
                 document.getElementById('match-room-info').innerText = name; 
                 openModal('matchmaking-overlay'); 
                 document.getElementById('wa-btn').classList.add('hidden-element'); 
                 
                 const matchRef = db.ref('system/matchmaking/' + rid);
-                
-                // 2. Eğer sen odadayken internetin giderse veya uygulamayı kapatırsan odayı otomatik sil ve paranı iade et
                 matchRef.onDisconnect().remove();
 
                 matchRef.transaction(c => { 
@@ -763,8 +915,7 @@
                     if(comm) {
                         const data = sn.val();
                         if(data && data.status === 'matched' && data.p2 && data.p2.uid === currentUserUid) { 
-                            // Eşleşme sağlandı! Sen 2. oyuncusun.
-                            matchRef.onDisconnect().cancel(); // Artık silemeyiz çünkü maç başladı
+                            matchRef.onDisconnect().cancel(); 
                             const gid = 'g_'+Date.now(); 
                             db.ref('system/games/' + gid).set({ 
                                 p1: data.uid, p1Name: data.name, p1Score: 0, 
@@ -776,17 +927,14 @@
                                 matchRef.remove(); 
                             }); 
                         } else if(data && data.status === 'waiting' && data.uid === currentUserUid) {
-                            // Eşleşme bekleniyor... (Hiçbir şey yapma, karşı tarafın bağlanmasını bekle)
                         } else {
-                            // Oda meşgul, paranı iade et
                             isSearching = false;
                             db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v || 0) + entry);
                             closeModal('matchmaking-overlay');
                             document.getElementById('wa-btn').classList.remove('hidden-element'); 
-                            alert("Bu oda dolu, lütfen tekrar deneyin.");
+                            alert("Oda dolu.");
                         }
                     } else {
-                        // Hata oldu, paranı iade et
                         isSearching = false;
                         db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v || 0) + entry);
                         closeModal('matchmaking-overlay');
@@ -797,30 +945,23 @@
         
         function cancelMatchmaking() { 
             if(!isSearching) return;
-            const rid = currentMatchRoom.rid;
-            const entry = currentMatchRoom.entry;
-            
-            // Eğer iptal basarsan önce odada olup olmadığına bak, sonra paranı iade et
+            const rid = currentMatchRoom.rid; const entry = currentMatchRoom.entry;
             db.ref('system/matchmaking/' + rid).once('value', s => {
                 const d = s.val();
                 if(d && d.uid === currentUserUid && d.status === 'waiting') {
                     db.ref('system/matchmaking/' + rid).remove().then(() => {
-                        db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v || 0) + entry); // İADE
+                        db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v || 0) + entry); 
                         isSearching = false;
                         closeModal('matchmaking-overlay'); 
                         document.getElementById('wa-btn').classList.remove('hidden-element'); 
                     });
-                } else {
-                    alert("Eşleşme zaten bulundu, iptal edilemez!");
-                }
+                } else { alert("Eşleşme bulundu, iptal edilemez!"); }
             });
         }
         
         function startGame(gid) { 
-            if(isPlaying) return; // Çift oyun engelleme kalkanı
-            
-            isSearching = false;
-            isPlaying = true;
+            if(isPlaying) return; 
+            isSearching = false; isPlaying = true;
             
             if(currentMatchRoom) { db.ref('system/matchmaking/' + currentMatchRoom.rid).onDisconnect().cancel(); }
 
@@ -841,8 +982,7 @@
                 document.getElementById('opp-name').innerText = (myKey === 'p1Score') ? g.p2Name : g.p1Name; 
             }); 
             
-            clearInterval(gameInterval);
-            clearInterval(targetInterval);
+            clearInterval(gameInterval); clearInterval(targetInterval);
 
             gameInterval = setInterval(() => { 
                 timeLeft--; 
@@ -854,47 +994,29 @@
         }
         
         function spawn() { 
-            const a = document.getElementById('game-area');
-            const t = document.createElement('div');
-            const isG = Math.random() < 0.15; 
-            
-            t.className = isG ? 'target golden' : 'target'; 
-            t.style.left = Math.max(10, Math.random() * (a.clientWidth - 70)) + 'px'; 
-            t.style.top = Math.max(10, Math.random() * (a.clientHeight - 70)) + 'px'; 
+            const a = document.getElementById('game-area'); const t = document.createElement('div'); const isG = Math.random() < 0.15; 
+            t.className = isG ? 'target golden' : 'target'; t.style.left = Math.max(10, Math.random() * (a.clientWidth - 70)) + 'px'; t.style.top = Math.max(10, Math.random() * (a.clientHeight - 70)) + 'px'; 
             
             const hit = (e) => { 
                 e.preventDefault(); 
                 const n = Date.now(); 
                 if(n - lastClickTime < 80) return; 
                 lastClickTime = n; 
-                
                 playSfx(isG ? 'gold' : 'hit'); 
                 db.ref('system/games/' + currentGameId + '/' + myKey).transaction(v => v + (isG ? 3 : 1)); 
                 t.remove(); 
             }; 
-            
-            t.onmousedown = hit; 
-            t.ontouchstart = hit; 
-            a.appendChild(t); 
-            
-            setTimeout(() => t.remove(), isG ? 700 : 900); 
+            t.onmousedown = hit; t.ontouchstart = hit; a.appendChild(t); setTimeout(() => t.remove(), isG ? 700 : 900); 
         }
         
         function finishGame() { 
-            clearInterval(gameInterval); 
-            clearInterval(targetInterval); 
-            isPlaying = false; // Maç bitti
-            
-            db.ref('system/games/' + currentGameId).off(); // Bug önleyici: Dinlemeyi durdur
+            clearInterval(gameInterval); clearInterval(targetInterval); isPlaying = false; 
+            db.ref('system/games/' + currentGameId).off(); 
 
             db.ref('system/games/' + currentGameId).once('value', s => { 
-                const g = s.val(); 
-                if(!g) return; 
+                const g = s.val(); if(!g) return; 
                 
-                const myS = g[myKey];
-                const oppS = (myKey === 'p1Score') ? g.p2Score : g.p1Score;
-                const cut = (g.entry * 2) - g.reward;
-                const xp = (myS > oppS) ? 50 : (myS === oppS ? 30 : 20); 
+                const myS = g[myKey]; const oppS = (myKey === 'p1Score') ? g.p2Score : g.p1Score; const cut = (g.entry * 2) - g.reward; const xp = (myS > oppS) ? 50 : (myS === oppS ? 30 : 20); 
                 
                 db.ref('users/' + currentUserUid + '/xp').transaction(v => (v||0) + xp); 
                 db.ref('users/' + currentUserUid + '/wagerNeeded').transaction(v => Math.max(0, (v||0) - g.entry)); 
@@ -903,24 +1025,15 @@
                 if(myS > oppS) { resultText = "KAZANDIN"; pnl = `+${g.reward - g.entry} 💎`; }
                 else if (myS < oppS) { resultText = "KAYBETTİN"; pnl = `-${g.entry} 💎`; }
 
-                db.ref('users/' + currentUserUid + '/history').push({ 
-                    opp: (myKey === 'p1Score' ? g.p2Name : g.p1Name), 
-                    myScore: myS, oppScore: oppS, result: resultText, pnl: pnl, 
-                    date: new Date().toLocaleString('tr-TR') 
-                }); 
+                db.ref('users/' + currentUserUid + '/history').push({ opp: (myKey === 'p1Score' ? g.p2Name : g.p1Name), myScore: myS, oppScore: oppS, result: resultText, pnl: pnl, date: new Date().toLocaleString('tr-TR') }); 
                 
-                // YENİ ÖDÜL DAĞITIM SİSTEMİ (Çünkü giriş parası zaten baştan kesildi)
                 db.ref('users/' + currentUserUid + '/diamonds').transaction(cur => { 
-                    if(myS > oppS) return (cur || 0) + g.reward; // Kazanan ödülü alır
-                    if(myS === oppS) return (cur || 0) + g.entry; // Berabere kalana giriş parası iade edilir
-                    return cur; // Kaybedenin parası baştan kesildiği için bir şey yapılmaz!
+                    if(myS > oppS) return (cur || 0) + g.reward; 
+                    if(myS === oppS) return (cur || 0) + g.entry; 
+                    return cur; 
                 }); 
                 
-                // Admin komisyonu hesaplama (Sadece kazanan hesaplar ki 2 kere veritabanına yazmasın)
-                if(myS > oppS) {
-                    db.ref('system/accounting/commission').transaction(v => (v || 0) + cut); 
-                }
-                
+                if(myS > oppS) { db.ref('system/accounting/commission').transaction(v => (v || 0) + cut); }
                 db.ref('system/active_players/' + currentUserUid).remove(); 
                 
                 setTimeout(() => { 
@@ -931,18 +1044,8 @@
             }); 
         }
         
-        function logout() { 
-            auth.signOut().then(() => location.reload()); 
-        }
-        
-        auth.onAuthStateChanged(u => { 
-            if(u && !isAdmin) {
-                startLobby(); 
-            } else if(!isAdmin) { 
-                document.getElementById('wa-btn').classList.add('hidden-element'); 
-                showPage('auth-page'); 
-            } 
-        });
+        function logout() { auth.signOut().then(() => location.reload()); }
+        auth.onAuthStateChanged(u => { if(u && !isAdmin) { startLobby(); } else if(!isAdmin) { document.getElementById('wa-btn').classList.add('hidden-element'); showPage('auth-page'); } });
     </script>
 </body>
 </html>
