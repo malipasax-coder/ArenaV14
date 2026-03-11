@@ -44,11 +44,14 @@
         
         @keyframes pop { to { transform: scale(1); } }
         
-        /* Emoji Animasyonları */
-        @keyframes floatEmoji { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-150px) scale(2); opacity: 0; } }
+        /* YENİ: Emoji Animasyonları */
+        @keyframes floatEmoji { 
+            0% { transform: translateY(0) scale(1); opacity: 1; } 
+            100% { transform: translateY(-150px) scale(2); opacity: 0; } 
+        }
         .floating-emoji { position: absolute; font-size: 40px; animation: floatEmoji 1.5s ease-out forwards; pointer-events: none; z-index: 100; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
         
-        /* Turnuva Ağacı CSS */
+        /* YENİ: Turnuva Ağacı CSS */
         .bracket-match { background: rgba(15, 23, 42, 0.9); border: 1px solid #3b82f6; border-radius: 8px; padding: 6px; margin-bottom: 8px; text-align: center; font-size: 10px; font-weight: bold; }
         .bracket-match.empty { border-color: #475569; color: #94a3b8; }
         .bracket-col { display: flex; flex-direction: column; justify-content: space-around; }
@@ -238,7 +241,7 @@
         <div class="marquee"><p id="lobby-announcement">Arena V14 E-Sports Platformuna Hoşgeldiniz!</p></div>
         
         <div class="flex justify-between items-center mb-4">
-            <div class="flex items-center gap-3 w-2/3 cursor-pointer" onclick="showPage('profile-page')">
+            <div class="flex items-center gap-3 w-2/3">
                 <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center font-black shadow-lg shadow-blue-500/30 text-xl" id="avatar-letter">A</div>
                 <div class="w-full">
                     <h2 id="display-name" class="font-bold text-sm uppercase truncate">...</h2>
@@ -246,85 +249,64 @@
                     <div class="w-full bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
                         <div id="player-xp-bar" class="bg-blue-500 h-full" style="width: 0%"></div>
                     </div>
+                    <p id="player-xp-text" class="text-[7px] text-slate-400 text-right mt-0.5">0 / 0 XP</p>
                 </div>
             </div>
             <div class="flex gap-2">
                 <button onclick="toggleMute()" id="mute-btn" class="w-10 h-10 glass rounded-xl text-slate-300"><i class="fa-solid fa-volume-high"></i></button>
                 <button onclick="openModal('chat-modal')" class="w-10 h-10 glass rounded-xl text-blue-400 relative"><i class="fa-solid fa-message"></i></button>
+                <button onclick="showPage('profile-page')" class="w-10 h-10 glass rounded-xl text-slate-300"><i class="fa-solid fa-gear"></i></button>
                 <button onclick="logout()" class="w-10 h-10 glass rounded-xl text-slate-500"><i class="fa-solid fa-power-off"></i></button>
             </div>
         </div>
         
-        <div class="stat-card mb-4 border-b-4 border-cyan-500 bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-center relative overflow-hidden shadow-xl">
-            <i class="fa-regular fa-gem absolute text-6xl opacity-5 -right-2 -bottom-2 text-cyan-400"></i>
-            <p class="text-[10px] text-slate-400 font-black mb-1 tracking-[0.2em]">ELMAS BAKİYESİ</p>
-            <h1 id="user-diamonds" class="text-4xl font-black font-orbitron text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">0 💎</h1>
-            
-            <div class="flex justify-center gap-3 mt-4 relative z-10">
-                <button onclick="openModal('deposit-modal')" class="flex-1 bg-blue-600 hover:bg-blue-500 py-2.5 rounded-xl text-[10px] font-bold text-white shadow-lg active:scale-95 transition-all">
-                    <i class="fa-solid fa-plus mr-1"></i> ELMAS AL
-                </button>
-                <button onclick="openWithdrawModal()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-xl text-[10px] font-bold text-white shadow-lg active:scale-95 transition-all">
-                    <i class="fa-solid fa-money-bill-transfer mr-1"></i> BOZDUR
-                </button>
-            </div>
+        <div class="stat-card mb-4 border-b-4 border-cyan-500 bg-cyan-500/5 py-8 text-center relative overflow-hidden">
+            <i class="fa-regular fa-gem absolute text-6xl opacity-10 -right-2 -bottom-2 text-cyan-400"></i>
+            <h1 id="user-diamonds" class="text-5xl font-black font-orbitron text-cyan-400">0 💎</h1>
+            <p class="text-[10px] text-slate-400 font-black mt-2 tracking-[0.2em]">ELMAS BAKİYESİ</p>
         </div>
         
-        <div class="grid grid-cols-2 gap-3 mb-4">
-            <button onclick="showPage('arena-page')" class="stat-card bg-gradient-to-br from-blue-700 to-slate-900 border border-blue-500/50 p-4 active:scale-95 flex flex-col items-center justify-center gap-3 h-32 shadow-lg shadow-blue-900/50 transition-transform">
-                <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-1">
-                    <i class="fa-solid fa-khanda text-2xl text-blue-400"></i>
-                </div>
-                <span class="text-xs font-black font-orbitron tracking-widest text-white">1V1 ARENA</span>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <button onclick="claimDailyReward()" class="stat-card flex items-center justify-center gap-2 bg-yellow-500/10 active:scale-95 p-3">
+                <i class="fa-solid fa-gift text-yellow-500 text-lg"></i><span class="text-[10px] font-bold">GÜNLÜK ÖDÜL</span>
             </button>
-            
-            <button onclick="openModal('bracket-modal')" class="stat-card bg-gradient-to-br from-orange-600 to-slate-900 border border-orange-500/50 p-4 active:scale-95 flex flex-col items-center justify-center gap-3 h-32 shadow-lg shadow-orange-900/50 transition-transform relative overflow-hidden">
-                <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-1">
-                    <i class="fa-solid fa-trophy text-2xl text-orange-400"></i>
-                </div>
-                <span class="text-xs font-black font-orbitron tracking-widest text-white">TURNUVA</span>
+            <button onclick="openModal('leaderboard-modal')" class="stat-card flex items-center justify-center gap-2 bg-purple-500/10 active:scale-95 p-3">
+                <i class="fa-solid fa-crown text-purple-500 text-lg"></i><span class="text-[10px] font-bold">TOP 10</span>
             </button>
-            
-            <button onclick="openModal('tasks-modal')" class="stat-card bg-gradient-to-br from-indigo-600 to-slate-900 border border-indigo-500/50 p-4 active:scale-95 flex flex-col items-center justify-center gap-2 h-24 shadow-lg shadow-indigo-900/50 transition-transform">
-                <i class="fa-solid fa-list-check text-xl text-indigo-400"></i>
-                <span class="text-[10px] font-bold tracking-widest text-white mt-1">GÖREVLER</span>
+            <button onclick="openModal('deposit-modal')" class="stat-card flex items-center justify-center gap-2 bg-blue-500/10 active:scale-95 p-3">
+                <i class="fa-regular fa-gem text-blue-500 text-lg"></i><span class="text-[10px] font-bold">ELMAS AL</span>
             </button>
-            
-            <button onclick="openModal('store-modal')" class="stat-card bg-gradient-to-br from-pink-600 to-slate-900 border border-pink-500/50 p-4 active:scale-95 flex flex-col items-center justify-center gap-2 h-24 shadow-lg shadow-pink-900/50 transition-transform">
-                <i class="fa-solid fa-store text-xl text-pink-400"></i>
-                <span class="text-[10px] font-bold tracking-widest text-white mt-1">VIP MAĞAZA</span>
+            <button onclick="openWithdrawModal()" class="stat-card flex items-center justify-center gap-2 bg-emerald-500/10 active:scale-95 p-3">
+                <i class="fa-solid fa-money-bill-transfer text-emerald-500 text-lg"></i><span class="text-[10px] font-bold">ELMAS BOZDUR</span>
             </button>
         </div>
 
-        <div class="flex justify-between gap-2">
-            <button onclick="claimDailyReward()" class="flex-1 bg-slate-800/80 p-3 rounded-xl text-[9px] font-bold text-yellow-500 text-center border border-slate-700 active:bg-slate-700 transition-colors">
-                <i class="fa-solid fa-gift mb-1 text-lg block"></i> GÜNLÜK ÖDÜL
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <button onclick="openModal('tasks-modal')" class="stat-card flex items-center justify-center gap-2 bg-indigo-500/10 border-indigo-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-list-check text-indigo-500 text-lg"></i><span class="text-[10px] font-bold text-indigo-400">GÜNLÜK GÖREVLER</span>
             </button>
-            <button onclick="openModal('leaderboard-modal')" class="flex-1 bg-slate-800/80 p-3 rounded-xl text-[9px] font-bold text-purple-400 text-center border border-slate-700 active:bg-slate-700 transition-colors">
-                <i class="fa-solid fa-crown mb-1 text-lg block"></i> TOP 10
-            </button>
-            <button onclick="openModal('rules-modal')" class="flex-1 bg-slate-800/80 p-3 rounded-xl text-[9px] font-bold text-slate-300 text-center border border-slate-700 active:bg-slate-700 transition-colors">
-                <i class="fa-solid fa-circle-question mb-1 text-lg block"></i> KURALLAR
+            <button onclick="openModal('bracket-modal')" class="stat-card flex items-center justify-center gap-2 bg-orange-500/10 border-orange-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-sitemap text-orange-500 text-lg"></i><span class="text-[10px] font-bold text-orange-400">TURNUVA AĞACI</span>
             </button>
         </div>
-    </div>
 
-    <div id="arena-page" class="page">
-        <button onclick="showPage('lobby-page')" class="mb-6 text-slate-400 active:text-white transition-colors">
-            <i class="fa-solid fa-arrow-left mr-2"></i>Ana Ekrana Dön
-        </button>
-        
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-black font-orbitron text-blue-400"><i class="fa-solid fa-khanda mr-2"></i>1V1 ARENA</h2>
-            <div class="text-right">
-                <span id="tour-dot" class="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
-                <span id="tour-status-text" class="text-[9px] font-bold text-red-400">KAPALI</span>
-            </div>
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <button onclick="openModal('store-modal')" class="stat-card flex items-center justify-center gap-2 bg-pink-500/10 border-pink-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-cart-shopping text-pink-500 text-lg"></i><span class="text-[10px] font-bold text-pink-400">VIP MAĞAZA</span>
+            </button>
+            <button onclick="openModal('rules-modal')" class="stat-card flex items-center justify-center gap-2 bg-slate-500/10 border-slate-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-circle-question text-slate-400 text-lg"></i><span class="text-[10px] font-bold text-slate-300">NASIL OYNANIR?</span>
+            </button>
         </div>
         
-        <p class="text-[10px] text-slate-400 mb-4 bg-blue-900/20 p-3 rounded-xl border border-blue-500/30">Aşağıdaki odalardan bütçene uygun olanı seç ve eşleştirme sırasına gir.</p>
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="text-slate-400 font-black text-[10px] tracking-widest uppercase flex items-center gap-2">
+                <span id="tour-dot" class="w-2 h-2 bg-red-500 rounded-full"></span> AKTİF ODALAR
+            </h3>
+            <span id="tour-status-text" class="text-[9px] font-bold text-red-400">KAPALI</span>
+        </div>
         
-        <div id="rooms-list" class="space-y-3 pb-10"></div>
+        <div id="rooms-list" class="space-y-3 mb-6"></div>
     </div>
 
     <div id="tasks-modal" class="modal">
@@ -337,17 +319,26 @@
             
             <div class="space-y-3" id="tasks-container">
                 <div class="bg-black/50 p-3 rounded-xl border border-slate-700">
-                    <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-white">3 Maç Oyna</span><span id="task1-status" class="text-[10px] font-bold text-indigo-400">0/3</span></div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-white">3 Maç Oyna</span>
+                        <span id="task1-status" class="text-[10px] font-bold text-indigo-400">0/3</span>
+                    </div>
                     <div class="w-full bg-slate-800 h-1.5 rounded-full mb-2 overflow-hidden"><div id="task1-bar" class="bg-indigo-500 h-full" style="width: 0%"></div></div>
                     <button id="task1-btn" onclick="claimTaskReward('played', 3, 20, 'task1')" class="w-full bg-slate-700 py-1.5 rounded-lg text-[9px] font-bold text-slate-400 cursor-not-allowed">20 💎 ÖDÜLÜ AL</button>
                 </div>
                 <div class="bg-black/50 p-3 rounded-xl border border-slate-700">
-                    <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-white">1 Maç Kazan</span><span id="task2-status" class="text-[10px] font-bold text-green-400">0/1</span></div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-white">1 Maç Kazan</span>
+                        <span id="task2-status" class="text-[10px] font-bold text-green-400">0/1</span>
+                    </div>
                     <div class="w-full bg-slate-800 h-1.5 rounded-full mb-2 overflow-hidden"><div id="task2-bar" class="bg-green-500 h-full" style="width: 0%"></div></div>
                     <button id="task2-btn" onclick="claimTaskReward('won', 1, 30, 'task2')" class="w-full bg-slate-700 py-1.5 rounded-lg text-[9px] font-bold text-slate-400 cursor-not-allowed">30 💎 ÖDÜLÜ AL</button>
                 </div>
                 <div class="bg-black/50 p-3 rounded-xl border border-slate-700">
-                    <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-white">10 Altın Hedef Vur</span><span id="task3-status" class="text-[10px] font-bold text-yellow-400">0/10</span></div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-white">10 Altın Hedef Vur</span>
+                        <span id="task3-status" class="text-[10px] font-bold text-yellow-400">0/10</span>
+                    </div>
                     <div class="w-full bg-slate-800 h-1.5 rounded-full mb-2 overflow-hidden"><div id="task3-bar" class="bg-yellow-500 h-full" style="width: 0%"></div></div>
                     <button id="task3-btn" onclick="claimTaskReward('golds', 10, 50, 'task3')" class="w-full bg-slate-700 py-1.5 rounded-lg text-[9px] font-bold text-slate-400 cursor-not-allowed">50 💎 ÖDÜLÜ AL</button>
                 </div>
@@ -541,6 +532,7 @@
             </div>
             
             <div id="emoji-display-area" class="absolute inset-0 pointer-events-none z-40 overflow-hidden"></div>
+
             <div id="game-area" class="flex-1"></div>
 
             <div id="emoji-bar" class="flex justify-center gap-6 p-4 glass rounded-t-3xl mt-2 z-50">
@@ -553,6 +545,7 @@
     </div>
 
     <script>
+        // KAPALI KAYNAK GÜVENLİĞİ
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
         document.onkeydown = function(e) { 
             if(e.keyCode === 123 || e.keyCode === 115) return false; 
@@ -574,15 +567,40 @@
         const auth = firebase.auth(); 
         const db = firebase.database();
         
-        let currentUserUid = null; let userData = {}; let isAdmin = false; let allUsers = {};
-        let gameInterval; let targetInterval; let timeLeft = 30; let currentGameId = null; let myKey = null; let currentMatchRoom = null;
-        let systemDailyReward = 50; let systemBonusRate = 0; let tourStart = "20:00"; let tourEnd = "23:59"; let isTourActive = false; let adminWhatsappNum = ""; let currentPlayerLevelInfo = { bonus: 5 }; let lastClickTime = 0;
-        let isSearching = false; let isPlaying = false; let isMuted = false; let isMaintenanceMode = false;
+        let currentUserUid = null;
+        let userData = {};
+        let isAdmin = false;
+        let allUsers = {};
         
-        let sessionGolds = 0; let lastEmojiTime = 0;
+        let gameInterval;
+        let targetInterval;
+        let timeLeft = 30;
+        let currentGameId = null;
+        let myKey = null;
+        let currentMatchRoom = null;
+        
+        let systemDailyReward = 50;
+        let systemBonusRate = 0; 
+        let tourStart = "20:00";
+        let tourEnd = "23:59";
+        let isTourActive = false;
+        let adminWhatsappNum = ""; 
+        let currentPlayerLevelInfo = { bonus: 5 }; 
+        let lastClickTime = 0;
+        
+        let isSearching = false; 
+        let isPlaying = false;
+        let isMuted = false;
+        let isMaintenanceMode = false;
+        
+        // YENİ: Görev ve Emoji State'leri
+        let sessionGolds = 0; // Bu maç vurulan altın hedef
+        let lastEmojiTime = 0; // Cooldown için
 
         function getLevelInfo(xpTotal) {
-            let xp = xpTotal || 0; let lvl = 1; let req = 100;
+            let xp = xpTotal || 0; 
+            let lvl = 1; 
+            let req = 100;
             while(xp >= req) { xp -= req; lvl++; req = lvl * 100; }
             let league = "BRONZ LİG", bonus = 5, color = "text-orange-400", barColor = "bg-orange-500";
             if(lvl >= 6 && lvl <= 10) { league = "GÜMÜŞ LİG"; bonus = 10; color = "text-slate-300"; barColor = "bg-slate-400"; }
@@ -593,22 +611,81 @@
         }
 
         let audioCtx; 
-        function initAudio() { try { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') { audioCtx.resume(); } } catch(e) {} }
-        function toggleMute() { isMuted = !isMuted; const btn = document.getElementById('mute-btn'); if(isMuted) { btn.innerHTML = '<i class="fa-solid fa-volume-xmark text-red-500"></i>'; btn.classList.add('border', 'border-red-500/50'); } else { btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>'; btn.classList.remove('border', 'border-red-500/50'); } }
-        function playSfx(type) { try { if(!audioCtx || isMuted) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); if(type === 'hit') { osc.frequency.setValueAtTime(600, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } else if(type === 'gold') { osc.type = 'square'; osc.frequency.setValueAtTime(1000, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.2); } } catch(e) {} }
+        function initAudio() { 
+            try {
+                if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                if(audioCtx.state === 'suspended') { audioCtx.resume(); }
+            } catch(e) {}
+        }
+        
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+            if(isMuted) {
+                btn.innerHTML = '<i class="fa-solid fa-volume-xmark text-red-500"></i>';
+                btn.classList.add('border', 'border-red-500/50');
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                btn.classList.remove('border', 'border-red-500/50');
+            }
+        }
 
-        function buyColor(colorHex, price, colorName) { if((userData.diamonds||0) < price) { return alert("Yetersiz bakiye!"); } if(userData.chatColor === colorHex) { return alert("Zaten bu renge sahipsin!"); } if(confirm(`${colorName} rengini ${price} Elmas karşılığında satın almak istiyor musun?`)) { db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return v - price; }); db.ref('users/' + currentUserUid + '/chatColor').set(colorHex); alert("Satın alma başarılı! Artık isminin yanında VIP elmas görünecek."); closeModal('store-modal'); } }
+        function playSfx(type) {
+            try {
+                if(!audioCtx || isMuted) return; 
+                const osc = audioCtx.createOscillator(); 
+                const gain = audioCtx.createGain(); 
+                osc.connect(gain); 
+                gain.connect(audioCtx.destination);
+                
+                if(type === 'hit') { 
+                    osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.1); 
+                } 
+                else if(type === 'gold') { 
+                    osc.type = 'square'; 
+                    osc.frequency.setValueAtTime(1000, audioCtx.currentTime); 
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.2); 
+                }
+            } catch(e) {}
+        }
+
+        function buyColor(colorHex, price, colorName) {
+            if((userData.diamonds||0) < price) { return alert("Yetersiz bakiye!"); }
+            if(userData.chatColor === colorHex) { return alert("Zaten bu renge sahipsin!"); }
+            
+            if(confirm(`${colorName} rengini ${price} Elmas karşılığında satın almak istiyor musun?`)) {
+                db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return v - price; });
+                db.ref('users/' + currentUserUid + '/chatColor').set(colorHex);
+                alert("Satın alma başarılı! Artık isminin yanında VIP elmas görünecek.");
+                closeModal('store-modal');
+            }
+        }
 
         function toggleMaintenance() { db.ref('system/config/maintenance').set(!isMaintenanceMode); }
         function showPage(id) { document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); }); document.getElementById(id).classList.add('active'); }
         function openModal(id) { document.getElementById(id).classList.add('flex'); }
         function closeModal(id) { document.getElementById(id).classList.remove('flex'); }
         
-        function toggleAuthMode(mode) { if(mode === 'register') { document.getElementById('login-box').classList.add('hidden-element'); document.getElementById('register-box').classList.remove('hidden-element'); } else { document.getElementById('register-box').classList.add('hidden-element'); document.getElementById('login-box').classList.remove('hidden-element'); } }
-        function openSupport() { if(adminWhatsappNum) { window.open(`https://wa.me/${adminWhatsappNum}`, '_blank'); } else { alert("Destek çevrimdışı."); } }
+        function toggleAuthMode(mode) { 
+            if(mode === 'register') { 
+                document.getElementById('login-box').classList.add('hidden-element'); 
+                document.getElementById('register-box').classList.remove('hidden-element'); 
+            } else { 
+                document.getElementById('register-box').classList.add('hidden-element'); 
+                document.getElementById('login-box').classList.remove('hidden-element'); 
+            } 
+        }
+        function openSupport() { 
+            if(adminWhatsappNum) { window.open(`https://wa.me/${adminWhatsappNum}`, '_blank'); } 
+            else { alert("Destek çevrimdışı."); }
+        }
 
         function handleLogin() {
-            const u = document.getElementById('l-email').value.trim(); const p = document.getElementById('l-pass').value;
+            const u = document.getElementById('l-email').value.trim();
+            const p = document.getElementById('l-pass').value;
             if(!u || !p) { return alert("Lütfen E-posta ve şifre girin!"); }
             auth.signInWithEmailAndPassword(u.includes('@') ? u : u + "@a.v14", p).then(function() { 
                 db.ref('users/'+auth.currentUser.uid).once('value', function(s) { 
@@ -631,13 +708,17 @@
             }).catch(function() { alert("Kayıt Hatası! Bu mail kullanılıyor olabilir."); });
         }
         
-        function forgotPassword() { const e = document.getElementById('l-email').value; if(!e || !e.includes('@')) { return alert("Lütfen önce E-Posta kutusuna mailinizi yazın, sonra tıklayın."); } auth.sendPasswordResetEmail(e).then(function() { alert("Sıfırlama linki gönderildi!"); }).catch(function() { alert("Hesap bulunamadı."); }); }
+        function forgotPassword() { 
+            const e = document.getElementById('l-email').value; 
+            if(!e || !e.includes('@')) { return alert("Lütfen önce E-Posta kutusuna mailinizi yazın, sonra tıklayın."); }
+            auth.sendPasswordResetEmail(e).then(function() { alert("Sıfırlama linki gönderildi!"); }).catch(function() { alert("Hesap bulunamadı."); }); 
+        }
 
         function checkTournamentTime() { 
             const now = new Date(); const c = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
             isTourActive = (tourStart < tourEnd) ? (c >= tourStart && c <= tourEnd) : (c >= tourStart || c <= tourEnd);
             const d = document.getElementById('tour-dot'); const t = document.getElementById('tour-status-text');
-            if(d && t) { d.className = isTourActive ? "inline-block w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse" : "inline-block w-2 h-2 bg-red-500 rounded-full mr-1"; t.innerText = isTourActive ? "AKTİF" : "KAPALI ("+tourStart+")"; }
+            if(d && t) { d.className = isTourActive ? "w-2 h-2 bg-green-500 rounded-full animate-pulse" : "w-2 h-2 bg-red-500 rounded-full"; t.innerText = isTourActive ? "AKTİF" : "KAPALI ("+tourStart+")"; }
         } setInterval(checkTournamentTime, 10000);
 
         function startAdmin() {
@@ -673,15 +754,16 @@
         function showXray(uid) { currentXrayUid = uid; const u = allUsers[uid]; const l = getLevelInfo(u.xp); document.getElementById('xray-content').innerHTML = ` <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-2"><span class="text-[10px] text-slate-400">Kullanıcı Adı</span><span class="font-bold text-blue-400 uppercase">${u.username}</span></div> <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-3"><span class="text-[10px] text-slate-400">Kayıtlı E-Posta</span><span class="text-[10px] text-white">${u.email}</span></div> <div class="grid grid-cols-2 gap-2 mb-2"><div><label class="text-[9px] text-slate-400">Bakiye (💎)</label><input id="xray-diamonds" type="number" value="${u.diamonds || 0}" class="input-field py-2 text-sm text-cyan-400 font-bold text-center"></div><div><label class="text-[9px] text-slate-400">Çevrim Şartı</label><input id="xray-wager" type="number" value="${u.wagerNeeded || 0}" class="input-field py-2 text-sm text-orange-400 font-bold text-center"></div></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Tecrübe Puanı / XP (Lvl ${l.level})</label><input id="xray-xp" type="number" value="${u.xp || 0}" class="input-field py-2 text-sm text-purple-400 font-bold"></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Telefon Numarası</label><input id="xray-phone" type="text" value="${u.phone || ''}" class="input-field py-2 text-xs"></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Banka IBAN Numarası</label><input id="xray-iban" type="text" value="${u.iban || ''}" class="input-field py-2 text-[10px]"></div>`; const banBtn = document.getElementById('xray-ban-btn'); const saveBtn = document.getElementById('xray-save-btn'); const roleBtn = document.getElementById('xray-role-btn'); if(u.status === 'banned') { banBtn.innerHTML = "<i class='fa-solid fa-unlock mr-2'></i>BAN KALDIR"; banBtn.className = "flex-1 bg-green-600 py-3 rounded-xl font-bold text-xs tracking-widest"; banBtn.onclick = function() { db.ref('users/' + uid + '/status').set('active'); closeModal('xray-modal'); }; } else { banBtn.innerHTML = "<i class='fa-solid fa-gavel mr-2'></i>BANLA"; banBtn.className = "flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs tracking-widest"; banBtn.onclick = function() { db.ref('users/' + uid + '/status').set('banned'); closeModal('xray-modal'); }; } if(u.role === 'mod') { roleBtn.innerHTML = "<i class='fa-solid fa-user-minus mr-2'></i>MODERATÖR YETKİSİNİ AL"; roleBtn.className = "w-full bg-orange-600 py-3 rounded-xl font-bold text-xs tracking-widest mt-2"; roleBtn.onclick = function() { db.ref('users/' + uid + '/role').set('user'); closeModal('xray-modal'); }; } else { roleBtn.innerHTML = "<i class='fa-solid fa-user-shield mr-2'></i>BU ÜYEYİ MODERATÖR YAP"; roleBtn.className = "w-full bg-purple-600 py-3 rounded-xl font-bold text-xs tracking-widest mt-2"; roleBtn.onclick = function() { db.ref('users/' + uid + '/role').set('mod'); closeModal('xray-modal'); }; } saveBtn.onclick = function() { saveXrayData(uid); }; openModal('xray-modal'); }
         function saveXrayData(uid) { const newDiamonds = parseInt(document.getElementById('xray-diamonds').value) || 0; const newWager = parseInt(document.getElementById('xray-wager').value) || 0; const newXp = parseInt(document.getElementById('xray-xp').value) || 0; const newPhone = document.getElementById('xray-phone').value.trim(); const newIban = document.getElementById('xray-iban').value.trim(); db.ref('users/' + uid).update({ diamonds: newDiamonds, wagerNeeded: newWager, xp: newXp, phone: newPhone, iban: newIban }).then(function() { alert("Üye verileri başarıyla kaydedildi!"); closeModal('xray-modal'); }).catch(function(e) { alert("Kaydetme hatası!"); }); }
 
+        // --- YENİ EKLENEN SİSTEMLER (Görev ve Bracket) YÖNETİMİ ---
         function updateTaskUI(tData) {
             const pPct = Math.min(100, (tData.played/3)*100); document.getElementById('task1-bar').style.width = pPct+'%'; document.getElementById('task1-status').innerText = Math.min(3,tData.played)+'/3';
-            const btn1 = document.getElementById('task1-btn'); if(tData.task1_claimed) { btn1.innerText = "ALINDI"; btn1.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn1.onclick = null; } else if(tData.played >= 3) { btn1.className = "w-full bg-indigo-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse cursor-pointer"; }
+            const btn1 = document.getElementById('task1-btn'); if(tData.task1_claimed) { btn1.innerText = "ALINDI"; btn1.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn1.onclick = null; } else if(tData.played >= 3) { btn1.className = "w-full bg-indigo-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse"; }
             
             const wPct = Math.min(100, (tData.won/1)*100); document.getElementById('task2-bar').style.width = wPct+'%'; document.getElementById('task2-status').innerText = Math.min(1,tData.won)+'/1';
-            const btn2 = document.getElementById('task2-btn'); if(tData.task2_claimed) { btn2.innerText = "ALINDI"; btn2.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn2.onclick = null; } else if(tData.won >= 1) { btn2.className = "w-full bg-green-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse cursor-pointer"; }
+            const btn2 = document.getElementById('task2-btn'); if(tData.task2_claimed) { btn2.innerText = "ALINDI"; btn2.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn2.onclick = null; } else if(tData.won >= 1) { btn2.className = "w-full bg-green-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse"; }
             
             const gPct = Math.min(100, (tData.golds/10)*100); document.getElementById('task3-bar').style.width = gPct+'%'; document.getElementById('task3-status').innerText = Math.min(10,tData.golds)+'/10';
-            const btn3 = document.getElementById('task3-btn'); if(tData.task3_claimed) { btn3.innerText = "ALINDI"; btn3.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn3.onclick = null; } else if(tData.golds >= 10) { btn3.className = "w-full bg-yellow-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse cursor-pointer"; }
+            const btn3 = document.getElementById('task3-btn'); if(tData.task3_claimed) { btn3.innerText = "ALINDI"; btn3.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn3.onclick = null; } else if(tData.golds >= 10) { btn3.className = "w-full bg-yellow-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse"; }
         }
 
         function claimTaskReward(type, req, reward, btnId) {
@@ -699,18 +781,24 @@
             document.getElementById('bm-2').innerText = b.p2 || 'Bekleniyor..'; document.getElementById('bm-2').className = b.p2 ? "bracket-match" : "bracket-match empty";
             document.getElementById('bm-3').innerText = b.p3 || 'Bekleniyor..'; document.getElementById('bm-3').className = b.p3 ? "bracket-match" : "bracket-match empty";
             document.getElementById('bm-4').innerText = b.p4 || 'Bekleniyor..'; document.getElementById('bm-4').className = b.p4 ? "bracket-match" : "bracket-match empty";
-            document.getElementById('bm-5').innerText = b.p5 || '?'; document.getElementById('bm-5').className = b.p5 ? "bracket-match border-orange-500 text-orange-400" : "bracket-match empty";
-            document.getElementById('bm-6').innerText = b.p6 || '?'; document.getElementById('bm-6').className = b.p6 ? "bracket-match border-orange-500 text-orange-400" : "bracket-match empty";
+            document.getElementById('bm-5').innerText = b.p5 || '?'; document.getElementById('bm-5').className = b.p5 ? "bracket-match border-orange-500" : "bracket-match empty";
+            document.getElementById('bm-6').innerText = b.p6 || '?'; document.getElementById('bm-6').className = b.p6 ? "bracket-match border-orange-500" : "bracket-match empty";
             document.getElementById('bm-7').innerText = b.p7 || 'ŞAMPİYON';
             
             const btn = document.getElementById('join-tourney-btn');
             if(b.status === 'open' && !b.p4) {
+                // Eğer kullanıcı zaten katıldıysa butonu gizle
                 if(b.p1==userData.username || b.p2==userData.username || b.p3==userData.username) { btn.classList.add('hidden'); }
                 else { btn.classList.remove('hidden'); }
             } else { btn.classList.add('hidden'); }
         }
 
-        function resetBracket() { if(confirm("Eski turnuvayı silip yepyeni bir kayıt havuzu açmak istiyor musunuz?")) { db.ref('system/bracket').set({ status: 'open', p1:'', p2:'', p3:'', p4:'', p5:'', p6:'', p7:'' }); alert("Turnuva sıfırlandı ve kayıtlara açıldı!"); } }
+        function resetBracket() {
+            if(confirm("Eski turnuvayı silip yepyeni bir kayıt havuzu açmak istiyor musunuz?")) {
+                db.ref('system/bracket').set({ status: 'open', p1:'', p2:'', p3:'', p4:'', p5:'', p6:'', p7:'' });
+                alert("Turnuva sıfırlandı ve kayıtlara açıldı!");
+            }
+        }
 
         function joinTournament() {
             if((userData.diamonds||0) < 100) return alert("Yetersiz Bakiye! Turnuva girişi 100 💎");
@@ -722,16 +810,21 @@
                 if(!b.p1) slot = 'p1'; else if(!b.p2) slot = 'p2'; else if(!b.p3) slot = 'p3'; else if(!b.p4) { slot = 'p4'; db.ref('system/bracket/status').set('full'); }
                 else return alert("Kontenjan dolu!");
 
-                db.ref('users/'+currentUserUid+'/diamonds').transaction(v => v - 100).then(() => { db.ref('system/bracket/'+slot).set(userData.username); alert("Turnuvaya başarıyla katıldın! Fikstürden eşleşmeni bekle."); });
+                db.ref('users/'+currentUserUid+'/diamonds').transaction(v => v - 100).then(() => {
+                    db.ref('system/bracket/'+slot).set(userData.username);
+                    alert("Turnuvaya başarıyla katıldın! Fikstürden eşleşmeni bekle.");
+                });
             });
         }
+        // --------------------------------------------------------
 
         function startLobby() {
             currentUserUid = auth.currentUser.uid; 
             showPage('lobby-page'); document.getElementById('wa-btn').classList.remove('hidden-element');
             
             db.ref('system/active_players/' + currentUserUid).remove();
-            isSearching = false; isPlaying = false;
+            isSearching = false;
+            isPlaying = false;
 
             db.ref('system/config').on('value', function(s) { 
                 const c = s.val() || {}; 
@@ -749,16 +842,23 @@
                     document.getElementById('display-name').innerHTML = userData.username + vipIconLobby; document.getElementById('display-name').style.color = userData.chatColor || 'white';
                     document.getElementById('avatar-letter').innerText = userData.username[0].toUpperCase(); document.getElementById('user-diamonds').innerText = (userData.diamonds||0).toLocaleString()+" 💎"; 
                     if(!userData.refCode) { const newRc = Math.random().toString(36).substring(7).toUpperCase(); db.ref('users/' + currentUserUid).update({ refCode: newRc }); document.getElementById('prof-ref-code').innerText = newRc; } else { document.getElementById('prof-ref-code').innerText = userData.refCode; }
-                    const l = getLevelInfo(userData.xp); currentPlayerLevelInfo = l; document.getElementById('player-league-text').innerHTML = `SEVİYE ${l.level} | <span class="${l.color}">${l.league}</span>`; document.getElementById('player-xp-bar').style.width = l.percent+'%'; 
+                    const l = getLevelInfo(userData.xp); currentPlayerLevelInfo = l; document.getElementById('player-league-text').innerHTML = `SEVİYE ${l.level} | <span class="${l.color}">${l.league}</span>`; document.getElementById('player-xp-bar').style.width = l.percent+'%'; document.getElementById('player-xp-text').innerText = l.currentXp+" / "+l.nextXp+" XP"; 
                     
+                    // Görev Kontrolü ve Sıfırlama
                     const today = new Date().toDateString();
-                    if(!userData.tasks || userData.tasks.date !== today) { const newTasks = { date: today, played: 0, won: 0, golds: 0, task1_claimed: false, task2_claimed: false, task3_claimed: false }; db.ref('users/'+currentUserUid+'/tasks').set(newTasks); updateTaskUI(newTasks); } else { updateTaskUI(userData.tasks); }
+                    if(!userData.tasks || userData.tasks.date !== today) {
+                        const newTasks = { date: today, played: 0, won: 0, golds: 0, task1_claimed: false, task2_claimed: false, task3_claimed: false };
+                        db.ref('users/'+currentUserUid+'/tasks').set(newTasks);
+                        updateTaskUI(newTasks);
+                    } else { updateTaskUI(userData.tasks); }
                 } 
             });
 
+            // Turnuva Ağacı Dinleyicisi
             db.ref('system/bracket').on('value', s => updateBracketUI(s.val()));
+
             db.ref('users/' + currentUserUid + '/history').limitToLast(10).on('value', function(s) { let h = ''; let arr = []; s.forEach(function(c) { arr.push(c.val()); }); arr.reverse(); arr.forEach(function(m) { h += `<div class="bg-black/40 p-2 rounded-xl text-[8px] flex justify-between border-b border-slate-800"><span>vs ${m.opp}</span><span class="${m.result=='KAZANDIN'?'text-green-400':'text-red-400'}">${m.pnl}</span></div>`; }); document.getElementById('prof-history-list').innerHTML = h || 'Oynanmış maç yok.'; });
-            db.ref('system/rooms').on('value', function(s) { let h = ''; s.forEach(function(c) { const r = c.val(); const lockIcon = r.password ? '<i class="fa-solid fa-lock text-red-500 mr-2"></i>' : ''; const passParam = r.password ? `'${r.password}'` : 'null'; h += `<div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}', ${passParam})" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 cursor-pointer mb-2 bg-slate-800/80"><div><p class="font-black text-sm">${lockIcon}${r.name}</p><p class="text-[10px] text-slate-400">${r.entryFee} 💎 GİRİŞ -> <span class="text-green-400 font-bold">${r.reward} 💎 ÖDÜL</span></p></div><i class="fa-solid fa-play text-blue-500 text-xl"></i></div>`; }); document.getElementById('rooms-list').innerHTML = h; });
+            db.ref('system/rooms').on('value', function(s) { let h = ''; s.forEach(function(c) { const r = c.val(); const lockIcon = r.password ? '<i class="fa-solid fa-lock text-red-500 mr-2"></i>' : ''; const passParam = r.password ? `'${r.password}'` : 'null'; h += `<div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}', ${passParam})" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 cursor-pointer mb-2"><div><p class="font-black text-sm">${lockIcon}${r.name}</p><p class="text-[10px] text-slate-400">${r.entryFee} 💎 GİRİŞ -> ${r.reward} 💎 ÖDÜL</p></div><i class="fa-solid fa-play text-blue-500"></i></div>`; }); document.getElementById('rooms-list').innerHTML = h; });
             db.ref('system/chat').limitToLast(20).on('value', function(s) { const box = document.getElementById('chat-messages'); let h = ''; s.forEach(function(c) { const m = c.val(); const nameColor = m.color || '#60a5fa'; const cIcon = m.color ? `<i class="fa-solid fa-gem mr-1" style="color: ${m.color}"></i>` : ''; h += `<div class="chat-msg ${m.uid==currentUserUid?'me':''}"><span class="font-bold text-[8px] uppercase" style="color: ${nameColor}">${cIcon}${m.name}</span><br>${m.text}</div>`; }); box.innerHTML = h; box.scrollTop = box.scrollHeight; });
             db.ref('users').orderByChild('diamonds').limitToLast(10).on('value', function(s) { let arr = []; s.forEach(function(c) { arr.push(c.val()); }); arr.reverse(); let h = ''; arr.forEach(function(u, i) { h += `<div class="flex justify-between text-[10px] p-2 border-b border-slate-800"><span>#${i+1} ${u.username}</span><span class="text-cyan-400">${u.diamonds||0} 💎</span></div>`; }); document.getElementById('leaderboard-list').innerHTML = h; });
             db.ref('system/active_players/' + currentUserUid + '/game').on('value', function(s) { if(s.val() && !isPlaying) startGame(s.val()); }); 
@@ -772,6 +872,7 @@
         function openWithdrawModal() { if(isTourActive) { return alert("Şu an maç saatleri içindeyiz, çekim yapılamaz!"); } if((userData.wagerNeeded||0) > 0) { document.getElementById('wager-warning').classList.remove('hidden'); document.getElementById('wager-amount').innerText = userData.wagerNeeded; } else { document.getElementById('wager-warning').classList.add('hidden'); } openModal('withdraw-modal'); }
         function submitWithdraw() { const a = parseInt(document.getElementById('w-amount').value); if(!a || a < 100) return alert("Minimum bozdurma tutarı 100 Elmas."); if((userData.wagerNeeded||0) > 0) return alert("Çevrim şartı tamamlanmadı."); if(userData.diamonds < a) return alert("Yetersiz bakiye."); db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return v - a; }); db.ref('system/withdraw_requests').push({ uid: currentUserUid, name: userData.username, amount: a, iban: userData.iban || "-", phone: userData.phone || "-", time: Date.now() }); closeModal('withdraw-modal'); alert("Çekim talebiniz alındı!"); }
         function claimDailyReward() { const t = new Date().toDateString(); if(userData.lastReward == t) { return alert("Bugün ödülünü zaten aldın!"); } db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v||0) + systemDailyReward; }); db.ref('users/' + currentUserUid + '/lastReward').set(t); alert(`Tebrikler! ${systemDailyReward} 💎 kazandın.`); }
+        
         function sendChatMessage() { const i = document.getElementById('chat-input'); const t = i.value.trim(); if(t) { db.ref('system/chat').push({ uid: currentUserUid, name: userData.username, text: t, color: userData.chatColor || '' }); i.value = ''; } }
 
         function joinMatch(rid, entry, reward, name, roomPass) { 
@@ -814,17 +915,25 @@
             });
         }
         
+        // YENİ: Emoji Gönderme Fonksiyonu
         function sendEmoji(emo) {
-            if(!isPlaying || !currentGameId) return; const now = Date.now();
-            if(now - lastEmojiTime < 2000) return; lastEmojiTime = now;
+            if(!isPlaying || !currentGameId) return;
+            const now = Date.now();
+            if(now - lastEmojiTime < 2000) return; // 2 Saniye Kuralı (Spam Engelleme)
+            lastEmojiTime = now;
             db.ref('system/games/'+currentGameId+'/emojis').push({e: emo, sender: currentUserUid, time: now});
         }
 
+        // YENİ: Emoji Ekranda Uçurma Animasyonu
         function renderFloatingEmoji(emo, side) {
-            const area = document.getElementById('emoji-display-area'); const el = document.createElement('div');
-            el.innerText = emo; el.className = 'floating-emoji'; el.style.bottom = '20%';
-            el.style.left = side === 'left' ? '15%' : '80%'; area.appendChild(el);
-            setTimeout(() => el.remove(), 1500); 
+            const area = document.getElementById('emoji-display-area');
+            const el = document.createElement('div');
+            el.innerText = emo; el.className = 'floating-emoji';
+            el.style.bottom = '20%';
+            // Kendi emojinse senin taraftan, rakibinki ise onun taraftan çıkar
+            el.style.left = side === 'left' ? '15%' : '80%';
+            area.appendChild(el);
+            setTimeout(() => el.remove(), 1500); // Animasyon bitince temizle
         }
 
         function startGame(gid) { 
@@ -833,7 +942,7 @@
 
             playSfx('start'); currentGameId = gid; closeModal('matchmaking-overlay'); showPage('game-page'); 
             document.getElementById('game-area').innerHTML = ""; 
-            timeLeft = 30; lastClickTime = Date.now(); sessionGolds = 0; 
+            timeLeft = 30; lastClickTime = Date.now(); sessionGolds = 0; // Değişkenleri sıfırla
             
             db.ref('system/games/' + gid).on('value', function(s) { 
                 const g = s.val(); if(!g) return; 
@@ -841,8 +950,12 @@
                 document.getElementById('my-score').innerText = g[myKey]; document.getElementById('opp-score').innerText = (myKey === 'p1Score') ? g.p2Score : g.p1Score; document.getElementById('opp-name').innerText = (myKey === 'p1Score') ? g.p2Name : g.p1Name; 
             }); 
             
+            // Emoji Dinleyicisini Başlat
             db.ref('system/games/' + gid + '/emojis').on('child_added', function(s) {
-                const data = s.val(); if(data && Date.now() - data.time < 5000) { renderFloatingEmoji(data.e, data.sender === currentUserUid ? 'left' : 'right'); }
+                const data = s.val();
+                if(data && Date.now() - data.time < 5000) { // Sadece yeni emojileri göster
+                    renderFloatingEmoji(data.e, data.sender === currentUserUid ? 'left' : 'right');
+                }
             });
 
             clearInterval(gameInterval); clearInterval(targetInterval);
@@ -856,7 +969,8 @@
             
             const hit = function(e) { 
                 e.preventDefault(); const n = Date.now(); if(n - lastClickTime < 80) return; lastClickTime = n; 
-                playSfx(isG ? 'gold' : 'hit'); if(isG) sessionGolds++; 
+                playSfx(isG ? 'gold' : 'hit'); 
+                if(isG) sessionGolds++; // GÖREV İÇİN ALTIN VURUSLARI SAY
                 db.ref('system/games/' + currentGameId + '/' + myKey).transaction(function(v) { return v + (isG ? 3 : 1); }); 
                 t.remove(); 
             }; 
@@ -865,7 +979,8 @@
         
         function finishGame() { 
             clearInterval(gameInterval); clearInterval(targetInterval); isPlaying = false; 
-            db.ref('system/games/' + currentGameId).off(); db.ref('system/games/' + currentGameId + '/emojis').off(); 
+            db.ref('system/games/' + currentGameId).off(); // Skor dinlemeyi kapat
+            db.ref('system/games/' + currentGameId + '/emojis').off(); // Emoji dinlemeyi kapat
 
             db.ref('system/games/' + currentGameId).once('value', function(s) { 
                 const g = s.val(); if(!g) return; 
@@ -880,12 +995,7 @@
 
                 db.ref('users/' + currentUserUid + '/history').push({ opp: (myKey === 'p1Score' ? g.p2Name : g.p1Name), myScore: myS, oppScore: oppS, result: resultText, pnl: pnl, date: new Date().toLocaleString('tr-TR') }); 
                 
+                // YENİ: GÖREV BİLGİLERİNİ GÜNCELLE
                 db.ref('users/' + currentUserUid + '/tasks/played').transaction(v => (v||0) + 1);
                 if(sessionGolds > 0) db.ref('users/' + currentUserUid + '/tasks/golds').transaction(v => (v||0) + sessionGolds);
-                if(myS > oppS) db.ref('users/' + currentUserUid + '/tasks/won').transaction(v => (v||0) + 1);
-                
-                db.ref('users/' + currentUserUid + '/diamonds').transaction(function(cur) { if(myS > oppS) return (cur || 0) + g.reward; if(myS === oppS) return (cur || 0) + g.entry; return cur; }); 
-                if(myS > oppS) { db.ref('system/accounting/commission').transaction(function(v) { return (v || 0) + cut; }); }
-                db.ref('system/active_players/' + currentUserUid).remove(); 
-                
-                setTimeout(function() { showPage('lobby-page'); document.getElementById('wa-btn').classList.remove('hidden-element'); alert(`${resultText}! (+${xp} XP)`); },
+                if(myS > oppS) db.ref('users/' + currentUserUid + '/tasks/won').transaction(v => (v||
