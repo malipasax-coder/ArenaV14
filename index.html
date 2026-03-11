@@ -19,18 +19,13 @@
         .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
         .stat-card { background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)); border-radius: 20px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); }
         .input-field { width: 100%; background: rgba(0, 0, 0, 0.5); padding: 0.9rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1); outline: none; color: white; font-size: 14px; }
-        
-        /* Oyun Alanı ve Hedefler */
         #game-area { position: relative; width: 100%; height: 50vh; background: rgba(0,0,0,0.6); border-radius: 24px; border: 2px solid #1e293b; overflow: hidden; margin-top: 10px; box-shadow: inset 0 0 30px rgba(0,0,0,0.9); }
         .target { position: absolute; width: 60px; height: 60px; background: radial-gradient(circle, #60a5fa, #2563eb); border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 20px #3b82f6; transform: scale(0); animation: pop 0.2s forwards; cursor: pointer; }
-        /* Altın Hedef Tasarımı (3 Puan) */
         .target.golden { background: radial-gradient(circle, #fde047, #ca8a04); border-color: #fef08a; box-shadow: 0 0 30px #eab308; width: 40px; height: 40px; z-index: 5; }
         @keyframes pop { to { transform: scale(1); } }
-        
-        /* Modal Tasarımları */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; }
         .modal.flex { display: flex !important; }
-        .chat-box { height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .chat-box { height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
         .chat-msg { background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 12px; font-size: 12px; width: fit-content; max-width: 90%; }
         .chat-msg.me { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); align-self: flex-end; }
     </style>
@@ -40,7 +35,7 @@
     <div id="auth-page" class="page active flex flex-col justify-center items-center">
         <h1 class="text-4xl font-black font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-8 tracking-tighter drop-shadow-lg">ARENA V14</h1>
         <div class="glass p-6 rounded-3xl w-full max-w-sm shadow-2xl">
-            <input id="l-user" placeholder="Kullanıcı Adı" class="input-field mb-3">
+            <input id="l-user" placeholder="E-Posta veya Kullanıcı Adı" class="input-field mb-3">
             <input id="l-pass" type="password" placeholder="Şifre" class="input-field mb-6">
             <button onclick="handleLogin()" class="w-full bg-blue-600 py-4 rounded-2xl font-black mb-3 active:scale-95 transition-all text-sm tracking-widest">GİRİŞ YAP</button>
             <button onclick="handleRegister()" class="w-full border-2 border-blue-500/50 text-blue-400 py-4 rounded-2xl font-black active:scale-95 transition-all text-sm tracking-widest">YENİ KAYIT</button>
@@ -50,7 +45,10 @@
     <div id="admin-page" class="page">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-xl font-black font-orbitron text-purple-500 uppercase"><i class="fa-solid fa-chess-king mr-2"></i>Patron Paneli</h1>
-            <button onclick="logout()" class="w-10 h-10 glass rounded-full text-red-500"><i class="fa-solid fa-power-off"></i></button>
+            <div class="flex gap-2">
+                <button onclick="showPage('admin-profile-page')" class="w-10 h-10 glass rounded-full text-blue-400"><i class="fa-solid fa-user-shield"></i></button>
+                <button onclick="logout()" class="w-10 h-10 glass rounded-full text-red-500"><i class="fa-solid fa-power-off"></i></button>
+            </div>
         </div>
         
         <div class="grid grid-cols-2 gap-3 mb-4">
@@ -65,17 +63,45 @@
         </div>
 
         <div class="stat-card border-purple-500/30 mb-4">
-            <h3 class="text-xs font-bold text-purple-400 mb-3 uppercase tracking-widest">Sistem Özellikleri</h3>
+            <h3 class="text-xs font-bold text-purple-400 mb-3 uppercase tracking-widest"><i class="fa-solid fa-percent mr-2"></i>Bonus ve Finans</h3>
             <div class="flex gap-2 mb-2">
+                <div class="flex-1 relative">
+                    <span class="absolute right-3 top-3 text-xs text-slate-400">%</span>
+                    <input id="admin-bonus-rate" type="number" placeholder="Yükleme Bonusu" class="input-field mb-0 text-xs">
+                </div>
+                <button onclick="updateSystemBonus()" class="bg-purple-600 px-4 rounded-xl text-[10px] font-bold">KAYDET</button>
+            </div>
+            <div class="flex gap-2">
                 <input id="admin-daily-amount" type="number" placeholder="Günlük Ödül (₺)" class="input-field mb-0 text-xs">
                 <button onclick="updateDailyReward()" class="bg-purple-600 px-4 rounded-xl text-[10px] font-bold">KAYDET</button>
             </div>
-            <button onclick="clearChat()" class="w-full bg-red-600/20 text-red-500 py-3 rounded-xl text-[10px] font-bold border border-red-500/30"><i class="fa-solid fa-broom mr-2"></i>GLOBAL SOHBETİ TEMİZLE</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mb-4">
+            <div class="stat-card border-emerald-500/30">
+                <h3 class="text-[10px] font-bold text-emerald-400 mb-2">YATIRIM TALEPLERİ</h3>
+                <div id="admin-deposit-list" class="space-y-2 max-h-[150px] overflow-y-auto"></div>
+            </div>
+            <div class="stat-card border-orange-500/30">
+                <h3 class="text-[10px] font-bold text-orange-400 mb-2">ÇEKİM TALEPLERİ</h3>
+                <div id="admin-withdraw-list" class="space-y-2 max-h-[150px] overflow-y-auto"></div>
+            </div>
         </div>
 
         <div class="stat-card mb-4">
-            <input id="user-search" oninput="filterUsers()" placeholder="Üye Ara (İsim ile)..." class="input-field mb-4">
+            <h3 class="text-xs font-bold text-blue-400 mb-2 uppercase">Üye Yönetimi</h3>
+            <input id="user-search" oninput="filterUsers()" placeholder="İsim ile Ara..." class="input-field mb-4">
             <div id="admin-users-list" class="space-y-3 max-h-[250px] overflow-y-auto pr-1"></div>
+        </div>
+    </div>
+
+    <div id="admin-profile-page" class="page">
+        <button onclick="showPage('admin-page')" class="mb-6 text-slate-400"><i class="fa-solid fa-arrow-left mr-2"></i>Geri Dön</button>
+        <h2 class="text-2xl font-black font-orbitron text-purple-500 mb-6">PATRON AYARLARI</h2>
+        <div class="stat-card">
+            <p class="text-xs text-slate-400 mb-2">Giriş Şifresini Değiştir</p>
+            <input id="admin-new-pass" type="text" placeholder="Yeni Şifre" class="input-field">
+            <button onclick="updateAdminPass()" class="w-full bg-purple-600 py-3 rounded-xl font-bold mt-2">ŞİFREYİ GÜNCELLE</button>
         </div>
     </div>
 
@@ -89,31 +115,26 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <button onclick="openModal('chat-modal')" class="w-10 h-10 glass rounded-xl text-blue-400 relative">
-                    <i class="fa-solid fa-message"></i><span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                </button>
+                <button onclick="openModal('chat-modal')" class="w-10 h-10 glass rounded-xl text-blue-400 relative"><i class="fa-solid fa-message"></i></button>
+                <button onclick="showPage('profile-page')" class="w-10 h-10 glass rounded-xl text-slate-300"><i class="fa-solid fa-gear"></i></button>
                 <button onclick="logout()" class="w-10 h-10 glass rounded-xl text-slate-500"><i class="fa-solid fa-power-off"></i></button>
             </div>
         </div>
         
         <div class="stat-card mb-6 border-b-4 border-cyan-500 bg-cyan-500/5 py-8 text-center relative overflow-hidden">
-            <i class="fa-solid fa-wallet absolute text-6xl opacity-5 -right-2 -bottom-2 text-cyan-400"></i>
-            <p class="text-[10px] text-slate-400 font-black mb-2 tracking-[0.2em]">CÜZDAN</p>
-            <h1 id="user-diamonds" class="text-4xl font-black font-orbitron text-cyan-400 drop-shadow-md">0 ₺</h1>
+            <h1 id="user-diamonds" class="text-5xl font-black font-orbitron text-cyan-400 drop-shadow-md">0 ₺</h1>
+            <p class="text-[10px] text-slate-400 font-black mt-2 tracking-[0.2em]">CÜZDAN BAKİYESİ</p>
         </div>
         
         <div class="grid grid-cols-3 gap-2 mb-6">
             <button onclick="claimDailyReward()" class="stat-card flex flex-col items-center justify-center bg-yellow-500/10 border-yellow-500/20 active:scale-95 transition-all p-3">
-                <i class="fa-solid fa-gift text-yellow-500 text-xl mb-1"></i>
-                <p class="text-[8px] font-bold text-center">GÜNLÜK<br>ÖDÜL</p>
+                <i class="fa-solid fa-gift text-yellow-500 text-xl mb-1"></i><p class="text-[8px] font-bold text-center">GÜNLÜK<br>ÖDÜL</p>
             </button>
-            <button onclick="openModal('leaderboard-modal')" class="stat-card flex flex-col items-center justify-center bg-purple-500/10 border-purple-500/20 active:scale-95 transition-all p-3">
-                <i class="fa-solid fa-crown text-purple-500 text-xl mb-1"></i>
-                <p class="text-[8px] font-bold text-center">TOP 10<br>LİDERLER</p>
+            <button onclick="openModal('deposit-modal')" class="stat-card flex flex-col items-center justify-center bg-blue-500/10 border-blue-500/20 active:scale-95 transition-all p-3">
+                <i class="fa-solid fa-plus text-blue-500 text-xl mb-1"></i><p class="text-[8px] font-bold text-center">KASA<br>YÜKLE</p>
             </button>
-            <button onclick="db.ref('users/'+currentUserUid+'/diamonds').transaction(v=>v+500)" class="stat-card flex flex-col items-center justify-center bg-blue-500/10 border-blue-500/20 active:scale-95 transition-all p-3">
-                <i class="fa-solid fa-plus text-blue-500 text-xl mb-1"></i>
-                <p class="text-[8px] font-bold text-center">BAKİYE<br>EKLE</p>
+            <button onclick="openModal('withdraw-modal')" class="stat-card flex flex-col items-center justify-center bg-emerald-500/10 border-emerald-500/20 active:scale-95 transition-all p-3">
+                <i class="fa-solid fa-receipt text-emerald-500 text-xl mb-1"></i><p class="text-[8px] font-bold text-center">PARA<br>ÇEK</p>
             </button>
         </div>
         
@@ -123,57 +144,66 @@
         <div id="rooms-list" class="space-y-3"></div>
     </div>
 
-    <div id="chat-modal" class="modal">
-        <div class="glass w-full max-w-sm rounded-3xl p-4 border-blue-500/30 flex flex-col h-[80vh]">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-black font-orbitron text-blue-400"><i class="fa-solid fa-globe mr-2"></i>GLOBAL SOHBET</h2>
-                <button onclick="closeModal('chat-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div id="chat-messages" class="chat-box flex-1"></div>
-            <div class="flex gap-2 mt-2">
-                <input id="chat-input" placeholder="Mesaj yaz..." class="input-field mb-0 text-xs">
-                <button onclick="sendChatMessage()" class="bg-blue-600 px-4 rounded-xl"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
+    <div id="profile-page" class="page">
+        <button onclick="showPage('lobby-page')" class="mb-6 text-slate-400"><i class="fa-solid fa-arrow-left mr-2"></i>Lobiye Dön</button>
+        <h2 class="text-2xl font-black font-orbitron text-blue-400 mb-6">PROFİL AYARLARI</h2>
+        
+        <div class="stat-card mb-4 border-blue-500/30">
+            <h3 class="text-xs font-bold text-blue-400 mb-3"><i class="fa-solid fa-shield mr-2"></i>Giriş Bilgileri</h3>
+            <p class="text-[10px] text-slate-400 mb-1">E-Posta Adresi</p>
+            <input id="prof-email" type="email" class="input-field mb-2">
+            <p class="text-[10px] text-slate-400 mb-1">Yeni Şifre (Değiştirmek için)</p>
+            <input id="prof-pass" type="password" placeholder="En az 6 hane..." class="input-field">
         </div>
+
+        <div class="stat-card mb-6 border-emerald-500/30">
+            <h3 class="text-xs font-bold text-emerald-400 mb-3"><i class="fa-solid fa-money-check-dollar mr-2"></i>Finans ve İletişim</h3>
+            <p class="text-[10px] text-slate-400 mb-1">Telefon Numarası</p>
+            <input id="prof-phone" type="tel" placeholder="05XX XXX XX XX" class="input-field mb-2">
+            <p class="text-[10px] text-slate-400 mb-1">IBAN (Para Çekim İçin)</p>
+            <input id="prof-iban" type="text" placeholder="TR..." class="input-field">
+        </div>
+
+        <button onclick="saveUserProfile()" class="w-full bg-blue-600 py-4 rounded-xl font-black tracking-widest active:scale-95 transition-all">DEĞİŞİKLİKLERİ KAYDET</button>
     </div>
 
-    <div id="leaderboard-modal" class="modal">
-        <div class="glass w-full max-w-sm rounded-3xl p-6 border-yellow-500/30">
+    <div id="deposit-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-blue-500/30">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="font-black font-orbitron text-yellow-400"><i class="fa-solid fa-crown mr-2"></i>ZENGİNLER LİSTESİ</h2>
-                <button onclick="closeModal('leaderboard-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <h2 class="font-black font-orbitron text-blue-400"><i class="fa-solid fa-wallet mr-2"></i>KASA YÜKLE</h2>
+                <button onclick="closeModal('deposit-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div id="leaderboard-list" class="space-y-2"></div>
+            <p class="text-xs text-slate-400 mb-2">Yüklemek istediğiniz tutarı girin. Sistem otomatik olarak bonusunuzu hesaplayacaktır.</p>
+            <input id="dep-amount" type="number" oninput="calcBonus()" placeholder="Örn: 1000" class="input-field text-lg font-bold mb-2">
+            <div class="bg-blue-500/10 p-3 rounded-xl border border-blue-500/20 mb-4">
+                <p class="text-xs text-slate-300 flex justify-between">Tutar: <span id="dep-base">0 ₺</span></p>
+                <p class="text-xs text-green-400 flex justify-between font-bold">Kazanılacak Bonus: <span id="dep-bonus">+0 ₺</span></p>
+                <hr class="border-slate-700 my-2">
+                <p class="text-sm text-white flex justify-between font-black">TOPLAM GEÇECEK: <span id="dep-total" class="text-cyan-400">0 ₺</span></p>
+            </div>
+            <button onclick="submitDeposit()" class="w-full bg-blue-600 py-3 rounded-xl font-bold">YÜKLEME TALEBİ GÖNDER</button>
         </div>
     </div>
 
-    <div id="matchmaking-overlay" class="modal">
-        <div class="w-24 h-24 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-6"></div>
-        <h2 class="text-2xl font-black font-orbitron mb-2 tracking-widest">ARANIYOR...</h2>
-        <p id="match-room-info" class="text-blue-400 text-xs font-bold mb-10 uppercase tracking-widest"></p>
-        <button onclick="cancelMatchmaking()" class="glass border-red-500/30 text-red-500 px-12 py-4 rounded-2xl font-black text-xs">İPTAL ET</button>
+    <div id="withdraw-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-emerald-500/30">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-black font-orbitron text-emerald-400"><i class="fa-solid fa-receipt mr-2"></i>PARA ÇEK</h2>
+                <button onclick="closeModal('withdraw-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <p class="text-[10px] text-slate-400 mb-4">Paranız Profilinizde kayıtlı olan IBAN adresinize gönderilecektir. Profilinizden IBAN ve İsim bilginizi güncellediğinizden emin olun.</p>
+            <input id="w-amount" type="number" placeholder="Çekilecek Tutar (₺)" class="input-field mb-4 text-lg">
+            <button onclick="submitWithdraw()" class="w-full bg-emerald-600 py-3 rounded-xl font-bold">ÇEKİM TALEBİ OLUŞTUR</button>
+        </div>
     </div>
 
-    <div id="game-page" class="page hidden-page flex-col">
-        <div class="flex justify-between items-center mb-4 glass p-4 rounded-3xl w-full">
-            <div class="text-center w-1/3">
-                <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1">Sen</p>
-                <span id="my-score" class="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">0</span>
-            </div>
-            <div class="text-center w-1/3 border-x border-slate-700/50">
-                <p class="text-[9px] font-bold text-red-500 uppercase tracking-widest mb-1">Süre</p>
-                <span id="game-time" class="text-3xl font-orbitron">30</span>
-            </div>
-            <div class="text-center w-1/3">
-                <p id="opp-name" class="text-[9px] font-bold text-red-400 uppercase tracking-widest mb-1">Rakip</p>
-                <span id="opp-score" class="text-4xl font-black text-white">0</span>
-            </div>
-        </div>
-        <div id="game-area"></div>
-    </div>
+    <div id="chat-modal" class="modal"><div class="glass w-full max-w-sm rounded-3xl p-4 border-blue-500/30 flex flex-col h-[70vh]"><div class="flex justify-between items-center mb-4"><h2 class="font-black font-orbitron text-blue-400"><i class="fa-solid fa-globe mr-2"></i>GLOBAL SOHBET</h2><button onclick="closeModal('chat-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button></div><div id="chat-messages" class="chat-box flex-1"></div><div class="flex gap-2 mt-2"><input id="chat-input" placeholder="Mesaj yaz..." class="input-field mb-0 text-xs"><button onclick="sendChatMessage()" class="bg-blue-600 px-4 rounded-xl"><i class="fa-solid fa-paper-plane"></i></button></div></div></div>
+    
+    <div id="matchmaking-overlay" class="modal"><div class="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-6"></div><h2 class="text-2xl font-black font-orbitron mb-2 tracking-widest">ARANIYOR...</h2><p id="match-room-info" class="text-blue-400 text-xs font-bold mb-10 uppercase tracking-widest"></p><button onclick="cancelMatchmaking()" class="glass border-red-500/30 text-red-500 px-10 py-3 rounded-xl font-black text-xs">İPTAL ET</button></div>
+
+    <div id="game-page" class="page hidden-page flex-col"><div class="flex justify-between items-center mb-4 glass p-4 rounded-3xl w-full"><div class="text-center w-1/3"><p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1">Sen</p><span id="my-score" class="text-4xl font-black text-white">0</span></div><div class="text-center w-1/3 border-x border-slate-700/50"><p class="text-[9px] font-bold text-red-500 uppercase tracking-widest mb-1">Süre</p><span id="game-time" class="text-3xl font-orbitron">30</span></div><div class="text-center w-1/3"><p id="opp-name" class="text-[9px] font-bold text-red-400 uppercase tracking-widest mb-1">Rakip</p><span id="opp-score" class="text-4xl font-black text-white">0</span></div></div><div id="game-area"></div></div>
 
     <script>
-        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyCpBrkM6Yh__FXhc8aznEp1G2AqMgxr_iE",
             authDomain: "arenav14-8ad95.firebaseapp.com",
@@ -188,103 +218,75 @@
         
         let currentUserUid = null, userData = {}, isAdmin = false, allUsers = {};
         let gameInterval, targetInterval, timeLeft = 30, currentGameId = null, myKey = null, currentMatchRoom = null;
-        let systemDailyReward = 50; // Varsayılan ödül
+        let systemDailyReward = 50, systemBonusRate = 0;
 
-        // --- AUDIO ENGINE (SES EFEKTLERİ) ---
-        let audioCtx;
-        function initAudio() {
-            if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-        }
-        function playSfx(type) {
-            if(!audioCtx) return;
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            if(type === 'hit') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if(type === 'gold') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-            } else if(type === 'start') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-            }
-        }
-
-        // --- UI UTILS ---
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(id === 'game-page') document.getElementById('game-page').style.display = 'flex';
-        }
+        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id === 'game-page') document.getElementById('game-page').style.display = 'flex'; }
         function openModal(id) { document.getElementById(id).classList.add('flex'); }
         function closeModal(id) { document.getElementById(id).classList.remove('flex'); }
 
-        // --- AUTH ---
+        // --- AUTH & ADMIN LOGIN ---
         function handleLogin() {
-            const u = document.getElementById('l-user').value.trim().toLowerCase();
+            const u = document.getElementById('l-user').value.trim();
             const p = document.getElementById('l-pass').value;
-            if(u === "admin" && p === "123456") { isAdmin = true; startAdmin(); return; }
-            auth.signInWithEmailAndPassword(u + "@a.v14", p).then(() => startLobby()).catch(() => alert("Kullanıcı adı veya şifre hatalı!"));
+            
+            if(u.toLowerCase() === "admin") {
+                db.ref('system/admin/password').once('value', s => {
+                    const realPass = s.val() || "123456";
+                    if(p === realPass) { isAdmin = true; startAdmin(); } else alert("Hatalı Admin Şifresi!");
+                });
+                return;
+            }
+            auth.signInWithEmailAndPassword(u.includes('@') ? u : u + "@a.v14", p).then(() => startLobby()).catch(() => alert("Kullanıcı adı veya şifre hatalı!"));
         }
         function handleRegister() {
-            const u = document.getElementById('l-user').value.trim().toLowerCase();
-            const p = document.getElementById('l-pass').value;
-            if(!u || p.length < 6) return alert("Kullanıcı adı girin (Şifre min 6 hane)!");
-            auth.createUserWithEmailAndPassword(u + "@a.v14", p).then(r => {
-                db.ref('users/' + r.user.uid).set({ username: u, diamonds: 1000, wins: 0, status: 'active', lastReward: "" });
+            const u = document.getElementById('l-user').value.trim(); const p = document.getElementById('l-pass').value;
+            if(!u || p.length < 6) return alert("Bilgileri kontrol et (Şifre min 6 hane)!");
+            auth.createUserWithEmailAndPassword(u.includes('@') ? u : u + "@a.v14", p).then(r => {
+                db.ref('users/' + r.user.uid).set({ username: u, email: u.includes('@') ? u : u + "@a.v14", diamonds: 1000, wins: 0, status: 'active' });
                 alert("Kayıt Başarılı! Giriş yapabilirsiniz.");
-            }).catch(e => alert("Kayıt Hatası!"));
+            }).catch(e => alert(e.message));
         }
 
-        // --- OWNER PANEL ---
+        // --- OWNER DASHBOARD ---
         function startAdmin() {
             showPage('admin-page');
             db.ref('system/accounting/commission').on('value', s => document.getElementById('admin-sys-commission').innerText = (s.val() || 0).toLocaleString() + " ₺");
             db.ref('system/config/dailyReward').on('value', s => { systemDailyReward = s.val() || 50; document.getElementById('admin-daily-amount').value = systemDailyReward; });
-            db.ref('users').on('value', s => {
-                allUsers = s.val() || {};
-                document.getElementById('admin-total-users').innerText = Object.keys(allUsers).length;
-                renderUsers(allUsers);
+            db.ref('system/config/bonusRate').on('value', s => { systemBonusRate = s.val() || 0; document.getElementById('admin-bonus-rate').value = systemBonusRate; });
+            
+            db.ref('users').on('value', s => { allUsers = s.val() || {}; document.getElementById('admin-total-users').innerText = Object.keys(allUsers).length; renderUsers(allUsers); });
+            
+            // Finans Taleplerini Dinle
+            db.ref('system/deposit_requests').on('value', s => {
+                let h = ''; s.forEach(c => { const r = c.val(); h += `<div class="bg-slate-800 p-2 rounded text-xs flex justify-between items-center"><p><b>${r.name}</b>: ${r.total} ₺ (Bonus Dahil)</p><button onclick="approveDeposit('${c.key}', '${r.uid}', ${r.total})" class="bg-emerald-600 px-2 rounded">ONAYLA</button></div>`; });
+                document.getElementById('admin-deposit-list').innerHTML = h || '<p class="text-[9px] text-slate-500">Talep yok.</p>';
+            });
+            db.ref('system/withdraw_requests').on('value', s => {
+                let h = ''; s.forEach(c => { const r = c.val(); h += `<div class="bg-slate-800 p-2 rounded text-[10px]"><div class="flex justify-between"><b class="text-orange-400">${r.name}</b><b>${r.amount} ₺</b></div><p class="text-[8px] my-1">${r.iban} <br> ${r.phone}</p><button onclick="approveWithdraw('${c.key}')" class="w-full bg-orange-600 rounded">ÖDENDİ İŞARETLE</button></div>`; });
+                document.getElementById('admin-withdraw-list').innerHTML = h || '<p class="text-[9px] text-slate-500">Talep yok.</p>';
             });
         }
-        function updateDailyReward() {
-            const amt = parseInt(document.getElementById('admin-daily-amount').value);
-            if(amt) { db.ref('system/config/dailyReward').set(amt); alert("Günlük Ödül Güncellendi!"); }
+        function updateAdminPass() {
+            const p = document.getElementById('admin-new-pass').value;
+            if(p.length < 6) return alert("Şifre en az 6 hane olmalı!");
+            db.ref('system/admin/password').set(p).then(() => { alert("Admin şifresi değişti!"); document.getElementById('admin-new-pass').value = ''; });
         }
-        function clearChat() { if(confirm("Tüm sohbet silinecek?")) db.ref('system/chat').remove(); }
+        function updateDailyReward() { db.ref('system/config/dailyReward').set(parseInt(document.getElementById('admin-daily-amount').value)); alert("Kaydedildi!"); }
+        function updateSystemBonus() { db.ref('system/config/bonusRate').set(parseInt(document.getElementById('admin-bonus-rate').value)); alert("Bonus Oranı Kaydedildi!"); }
+        function approveDeposit(rid, uid, amt) { db.ref(`users/${uid}/diamonds`).transaction(v => (v||0)+amt); db.ref(`system/deposit_requests/${rid}`).remove(); }
+        function approveWithdraw(rid) { db.ref(`system/withdraw_requests/${rid}`).remove(); }
+        
         function renderUsers(obj) {
-            let h = '';
-            Object.keys(obj).forEach(uid => {
-                const u = obj[uid];
-                h += `<div class="stat-card bg-slate-800/40 mb-2 flex justify-between items-center text-xs">
-                    <span class="font-black uppercase">${u.username}</span>
-                    <div class="flex gap-2 items-center">
-                        <span class="text-cyan-400 font-bold">${(u.diamonds||0)} ₺</span>
-                        <button onclick="db.ref('users/${uid}/diamonds').transaction(v=>(v||0)+500)" class="bg-green-600 px-2 py-1 rounded">+500</button>
-                    </div>
-                </div>`;
-            });
+            let h = ''; Object.keys(obj).forEach(uid => { const u = obj[uid]; h += `<div class="stat-card bg-slate-800/40 mb-2 flex justify-between items-center text-xs"><span class="font-black uppercase">${u.username}</span><div class="flex gap-2 items-center"><span class="text-cyan-400 font-bold">${(u.diamonds||0)} ₺</span><button onclick="db.ref('users/${uid}/diamonds').transaction(v=>(v||0)+500)" class="bg-green-600 px-2 py-1 rounded">+500</button></div></div>`; });
             document.getElementById('admin-users-list').innerHTML = h;
         }
-        function filterUsers() {
-            const t = document.getElementById('user-search').value.toLowerCase();
-            const f = {}; Object.keys(allUsers).forEach(k => { if(allUsers[k].username.toLowerCase().includes(t)) f[k] = allUsers[k]; });
-            renderUsers(f);
-        }
+        function filterUsers() { const t = document.getElementById('user-search').value.toLowerCase(); const f = {}; Object.keys(allUsers).forEach(k => { if(allUsers[k].username.toLowerCase().includes(t)) f[k] = allUsers[k]; }); renderUsers(f); }
 
-        // --- LOBBY, CHAT, REWARD, LEADERBOARD ---
+        // --- LOBBY & PROFILE ---
         function startLobby() {
-            currentUserUid = auth.currentUser.uid;
-            showPage('lobby-page');
-            
+            currentUserUid = auth.currentUser.uid; showPage('lobby-page');
             db.ref('system/config/dailyReward').on('value', s => { systemDailyReward = s.val() || 50; });
+            db.ref('system/config/bonusRate').on('value', s => { systemBonusRate = s.val() || 0; });
             
             db.ref('users/' + currentUserUid).on('value', s => {
                 userData = s.val();
@@ -292,52 +294,75 @@
                     document.getElementById('display-name').innerText = userData.username;
                     document.getElementById('avatar-letter').innerText = userData.username.charAt(0).toUpperCase();
                     document.getElementById('user-diamonds').innerText = (userData.diamonds||0).toLocaleString() + " ₺";
+                    // Profil inputlarını doldur
+                    document.getElementById('prof-email').value = userData.email || auth.currentUser.email || "";
+                    document.getElementById('prof-phone').value = userData.phone || "";
+                    document.getElementById('prof-iban').value = userData.iban || "";
                 }
             });
 
-            // Odaları Yükle
-            const defaultRooms = { "r1": { name: "ACEMİ ARENASI", entryFee: 100, reward: 180 }, "r2": { name: "PROFESYONEL", entryFee: 500, reward: 900 }, "r3": { name: "ELİTE 1V1", entryFee: 1000, reward: 1850 } };
+            const defaultRooms = { "r1": { name: "ACEMİ", entryFee: 100, reward: 180 }, "r2": { name: "PRO", entryFee: 500, reward: 900 }, "r3": { name: "ELİTE", entryFee: 1000, reward: 1850 } };
             db.ref('system/rooms').set(defaultRooms);
             db.ref('system/rooms').on('value', s => {
-                let h = ''; s.forEach(c => {
-                    const r = c.val();
-                    h += `<div onclick="joinMatch('${c.key}', ${r.entryFee}, ${r.reward}, '${r.name}')" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 transition-all cursor-pointer">
-                        <div><p class="font-black text-sm mb-1">${r.name}</p><p class="text-[10px] text-slate-400 font-bold">Giriş: ${r.entryFee} ₺ | Ödül: ${r.reward} ₺</p></div>
-                        <div class="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center"><i class="fa-solid fa-play text-blue-500"></i></div>
-                    </div>`;
-                });
+                let h = ''; s.forEach(c => { const r = c.val(); h += `<div onclick="joinMatch('${c.key}', ${r.entryFee}, ${r.reward}, '${r.name}')" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 transition-all cursor-pointer"><div><p class="font-black text-sm mb-1">${r.name}</p><p class="text-[10px] text-slate-400 font-bold">Giriş: ${r.entryFee} ₺ | Ödül: ${r.reward} ₺</p></div><div class="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center"><i class="fa-solid fa-play text-blue-500"></i></div></div>`; });
                 document.getElementById('rooms-list').innerHTML = h;
             });
 
-            // Chat Dinleyici
-            db.ref('system/chat').limitToLast(30).on('value', s => {
-                const box = document.getElementById('chat-messages');
-                let h = '';
-                s.forEach(c => {
-                    const msg = c.val();
-                    const isMe = msg.uid === currentUserUid;
-                    h += `<div class="chat-msg ${isMe ? 'me' : ''}"><span class="font-bold text-[9px] text-${isMe?'blue':'purple'}-400 uppercase">${msg.name}</span><br>${msg.text}</div>`;
-                });
-                box.innerHTML = h;
-                box.scrollTop = box.scrollHeight;
+            db.ref('system/chat').limitToLast(20).on('value', s => {
+                const box = document.getElementById('chat-messages'); let h = '';
+                s.forEach(c => { const m = c.val(); const isMe = m.uid === currentUserUid; h += `<div class="chat-msg ${isMe ? 'me' : ''}"><span class="font-bold text-[9px] text-${isMe?'blue':'purple'}-400 uppercase">${m.name}</span><br>${m.text}</div>`; });
+                box.innerHTML = h; box.scrollTop = box.scrollHeight;
             });
-
-            // Leaderboard Dinleyici (En Zengin 10 Kişi)
-            db.ref('users').orderByChild('diamonds').limitToLast(10).on('value', s => {
-                let arr = []; s.forEach(c => { arr.push(c.val()); });
-                arr.reverse(); // En yüksek en üste
-                let h = '';
-                arr.forEach((u, i) => {
-                    let color = i===0 ? 'text-yellow-400' : (i===1 ? 'text-slate-300' : (i===2 ? 'text-orange-400' : 'text-white'));
-                    h += `<div class="stat-card bg-slate-800/50 mb-2 flex justify-between items-center border-l-4 border-slate-600">
-                        <div class="flex items-center gap-3"><span class="font-black ${color} text-lg">#${i+1}</span><span class="font-bold text-xs uppercase">${u.username}</span></div>
-                        <span class="text-cyan-400 font-black text-xs">${(u.diamonds||0).toLocaleString()} ₺</span>
-                    </div>`;
-                });
-                document.getElementById('leaderboard-list').innerHTML = h;
-            });
-
             db.ref(`system/active_players/${currentUserUid}/game`).on('value', s => { if(s.val()) startGame(s.val()); });
+        }
+
+        // --- PROFİL GÜNCELLEME ---
+        function saveUserProfile() {
+            const mail = document.getElementById('prof-email').value;
+            const pass = document.getElementById('prof-pass').value;
+            const phone = document.getElementById('prof-phone').value;
+            const iban = document.getElementById('prof-iban').value;
+
+            db.ref('users/'+currentUserUid).update({ phone, iban, email: mail });
+            
+            const user = auth.currentUser;
+            let promises = [];
+            if(mail && mail !== user.email) promises.push(user.updateEmail(mail));
+            if(pass && pass.length >= 6) promises.push(user.updatePassword(pass));
+
+            Promise.all(promises).then(() => {
+                alert("Profil bilgilerin başarıyla güncellendi!");
+                document.getElementById('prof-pass').value = '';
+                showPage('lobby-page');
+            }).catch(e => alert("Güvenlik nedeniyle şifre/mail değiştirmek için hesaptan çıkıp tekrar giriş yapmalısın. (IBAN ve Telefon güncellendi)"));
+        }
+
+        // --- FİNANS & BONUS SİSTEMİ ---
+        function calcBonus() {
+            const amt = parseInt(document.getElementById('dep-amount').value) || 0;
+            const bonus = (amt * systemBonusRate) / 100;
+            document.getElementById('dep-base').innerText = amt + " ₺";
+            document.getElementById('dep-bonus').innerText = "+" + bonus + " ₺";
+            document.getElementById('dep-total').innerText = (amt + bonus) + " ₺";
+        }
+        function submitDeposit() {
+            const amt = parseInt(document.getElementById('dep-amount').value);
+            if(!amt || amt <= 0) return alert("Geçerli bir tutar girin!");
+            const bonus = (amt * systemBonusRate) / 100;
+            db.ref('system/deposit_requests').push({ uid: currentUserUid, name: userData.username, amount: amt, bonus: bonus, total: amt + bonus, time: Date.now() });
+            closeModal('deposit-modal'); document.getElementById('dep-amount').value = '';
+            alert("Yükleme talebiniz alınmıştır. Yönetici onayladığında bakiyenize bonusunuzla birlikte eklenecektir.");
+        }
+        function submitWithdraw() {
+            const amt = parseInt(document.getElementById('w-amount').value);
+            if(!amt || amt < 100) return alert("Minimum çekim 100 ₺'dir.");
+            if(userData.diamonds < amt) return alert("Bakiyeniz yetersiz!");
+            if(!userData.iban || !userData.phone) return alert("Profilinizden IBAN ve Telefon numaranızı kaydetmeden çekim yapamazsınız!");
+            
+            db.ref(`users/${currentUserUid}/diamonds`).transaction(v => v - amt);
+            db.ref('system/withdraw_requests').push({ uid: currentUserUid, name: userData.username, amount: amt, iban: userData.iban, phone: userData.phone, time: Date.now() });
+            closeModal('withdraw-modal'); document.getElementById('w-amount').value = '';
+            alert("Çekim talebiniz işleme alınmıştır.");
         }
 
         function claimDailyReward() {
@@ -347,117 +372,52 @@
             db.ref(`users/${currentUserUid}/lastReward`).set(today);
             alert(`🎁 TEBRİKLER! ${systemDailyReward} ₺ Günlük Ödül Kasana Eklendi.`);
         }
+        function sendChatMessage() { const inp = document.getElementById('chat-input'); const txt = inp.value.trim(); if(txt) { db.ref('system/chat').push({ uid: currentUserUid, name: userData.username, text: txt }); inp.value = ''; } }
 
-        function sendChatMessage() {
-            const inp = document.getElementById('chat-input');
-            const txt = inp.value.trim();
-            if(txt) {
-                db.ref('system/chat').push({ uid: currentUserUid, name: userData.username, text: txt, time: Date.now() });
-                inp.value = '';
-            }
-        }
-
-        // --- MATCHMAKING & GAME ---
+        // --- MATCHMAKING & GAME (Korundu) ---
         function joinMatch(rid, entry, reward, name) {
-            initAudio(); // Ses motorunu başlat
             if(!userData || userData.diamonds < entry) return alert("Bakiye Yetersiz!");
-            currentMatchRoom = { rid, entry };
-            document.getElementById('match-room-info').innerText = name;
-            openModal('matchmaking-overlay');
-
+            currentMatchRoom = { rid, entry }; document.getElementById('match-room-info').innerText = name; openModal('matchmaking-overlay');
             db.ref(`system/matchmaking/${rid}`).transaction(cur => {
                 if(!cur) return { uid: currentUserUid, name: userData.username, status: 'waiting', entry, reward };
-                if(cur.status === 'waiting' && cur.uid !== currentUserUid) {
-                    cur.status = 'matched'; cur.p2 = { uid: currentUserUid, name: userData.username }; return cur;
-                } return;
+                if(cur.status === 'waiting' && cur.uid !== currentUserUid) { cur.status = 'matched'; cur.p2 = { uid: currentUserUid, name: userData.username }; return cur; } return;
             }, (err, comm, snap) => {
                 if(comm && snap.val()?.status === 'matched' && snap.val().p2.uid === currentUserUid) {
                     const gid = 'g_'+Date.now(); const d = snap.val();
                     db.ref(`system/games/${gid}`).set({ p1: d.uid, p1Name: d.name, p1Score: 0, p2: d.p2.uid, p2Name: d.p2.name, p2Score: 0, entry, reward, status: 'playing' }).then(() => {
-                        db.ref(`system/active_players/${d.uid}/game`).set(gid);
-                        db.ref(`system/active_players/${d.p2.uid}/game`).set(gid);
-                        db.ref(`system/matchmaking/${rid}`).remove();
+                        db.ref(`system/active_players/${d.uid}/game`).set(gid); db.ref(`system/active_players/${d.p2.uid}/game`).set(gid); db.ref(`system/matchmaking/${rid}`).remove();
                     });
                 }
             });
         }
-
         function cancelMatchmaking() { db.ref(`system/matchmaking/${currentMatchRoom.rid}`).remove(); closeModal('matchmaking-overlay'); }
 
         function startGame(gid) {
-            playSfx('start'); // Oyun başlama sesi
-            currentGameId = gid;
-            closeModal('matchmaking-overlay');
-            showPage('game-page');
-            document.getElementById('game-area').innerHTML = "";
-            timeLeft = 30;
-            
+            currentGameId = gid; closeModal('matchmaking-overlay'); showPage('game-page'); document.getElementById('game-area').innerHTML = ""; timeLeft = 30;
             db.ref(`system/games/${gid}`).on('value', s => {
-                const g = s.val(); if(!g) return;
-                myKey = (currentUserUid === g.p1) ? 'p1Score' : 'p2Score';
-                document.getElementById('my-score').innerText = g[myKey];
-                document.getElementById('opp-score').innerText = (myKey === 'p1Score') ? g.p2Score : g.p1Score;
-                document.getElementById('opp-name').innerText = (myKey === 'p1Score') ? g.p2Name : g.p1Name;
+                const g = s.val(); if(!g) return; myKey = (currentUserUid === g.p1) ? 'p1Score' : 'p2Score';
+                document.getElementById('my-score').innerText = g[myKey]; document.getElementById('opp-score').innerText = (myKey === 'p1Score') ? g.p2Score : g.p1Score; document.getElementById('opp-name').innerText = (myKey === 'p1Score') ? g.p2Name : g.p1Name;
             });
-
-            gameInterval = setInterval(() => {
-                timeLeft--; document.getElementById('game-time').innerText = timeLeft;
-                if(timeLeft <= 0) finishGame();
-            }, 1000);
-            targetInterval = setInterval(spawn, 600); // Hedefler biraz daha hızlandı!
+            gameInterval = setInterval(() => { timeLeft--; document.getElementById('game-time').innerText = timeLeft; if(timeLeft <= 0) finishGame(); }, 1000);
+            targetInterval = setInterval(spawn, 600);
         }
 
         function spawn() {
-            const a = document.getElementById('game-area');
-            const t = document.createElement('div');
-            
-            // %15 İhtimalle Altın Hedef Çıkar
-            const isGold = Math.random() < 0.15;
+            const a = document.getElementById('game-area'); const t = document.createElement('div'); const isGold = Math.random() < 0.15;
             t.className = isGold ? 'target golden' : 'target';
-            
-            const safeWidth = a.clientWidth - 70;
-            const safeHeight = a.clientHeight - 70;
-            t.style.left = Math.max(10, Math.random() * safeWidth) + 'px';
-            t.style.top = Math.max(10, Math.random() * safeHeight) + 'px';
-            
-            const hitLogic = (e) => { 
-                e.preventDefault(); 
-                playSfx(isGold ? 'gold' : 'hit'); // Vuruş sesi
-                db.ref(`system/games/${currentGameId}/${myKey}`).transaction(v => v + (isGold ? 3 : 1)); // Puan ekle
-                t.remove(); 
-            };
-            
-            t.onmousedown = hitLogic; t.ontouchstart = hitLogic;
-            a.appendChild(t);
-            
-            // Altın hedef daha hızlı kaybolur (Zorluk)
-            setTimeout(() => t.remove(), isGold ? 700 : 900);
+            t.style.left = Math.max(10, Math.random() * (a.clientWidth - 70)) + 'px'; t.style.top = Math.max(10, Math.random() * (a.clientHeight - 70)) + 'px';
+            const hitLogic = (e) => { e.preventDefault(); db.ref(`system/games/${currentGameId}/${myKey}`).transaction(v => v + (isGold ? 3 : 1)); t.remove(); };
+            t.onmousedown = hitLogic; t.ontouchstart = hitLogic; a.appendChild(t); setTimeout(() => t.remove(), isGold ? 700 : 900);
         }
 
         function finishGame() {
             clearInterval(gameInterval); clearInterval(targetInterval);
             db.ref(`system/games/${currentGameId}`).once('value', s => {
                 const g = s.val(); if(!g) return;
-                const myS = g[myKey], oppS = (myKey === 'p1Score') ? g.p2Score : g.p1Score;
-                const cut = (g.entry * 2) - g.reward;
-
-                db.ref(`users/${currentUserUid}/diamonds`).transaction(cur => {
-                    if(myS > oppS) return cur - g.entry + g.reward;
-                    if(myS < oppS) return cur - g.entry;
-                    return cur;
-                });
-
-                if(myS > oppS) {
-                    alert("🏆 TEBRİKLER! KAZANDIN.");
-                    db.ref('system/accounting/commission').transaction(v => (v || 0) + cut);
-                } else if(myS < oppS) {
-                    alert("💥 KAYBETTİN!");
-                    db.ref('system/accounting/commission').transaction(v => (v || 0) + cut);
-                } else {
-                    alert("🤝 BERABERE!");
-                }
-                db.ref(`system/active_players/${currentUserUid}/game`).remove();
-                setTimeout(() => showPage('lobby-page'), 2000);
+                const myS = g[myKey], oppS = (myKey === 'p1Score') ? g.p2Score : g.p1Score; const cut = (g.entry * 2) - g.reward;
+                db.ref(`users/${currentUserUid}/diamonds`).transaction(cur => { if(myS > oppS) return cur - g.entry + g.reward; if(myS < oppS) return cur - g.entry; return cur; });
+                if(myS > oppS) { alert("🏆 TEBRİKLER! KAZANDIN."); db.ref('system/accounting/commission').transaction(v => (v || 0) + cut); } else if(myS < oppS) { alert("💥 KAYBETTİN!"); db.ref('system/accounting/commission').transaction(v => (v || 0) + cut); }
+                db.ref(`system/active_players/${currentUserUid}/game`).remove(); setTimeout(() => showPage('lobby-page'), 2000);
             });
         }
 
