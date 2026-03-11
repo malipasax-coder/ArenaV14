@@ -524,7 +524,7 @@
         
         function openSupport() { 
             if(adminWhatsappNum) {
-                window.open(`https://wa.me/${adminWhatsappNum}`); 
+                window.open(`https://wa.me/${adminWhatsappNum}`, '_blank'); 
             } else {
                 alert("Destek çevrimdışı."); 
             }
@@ -538,6 +538,7 @@
                 db.ref('system/admin/password').once('value', s => { 
                     if(p === (s.val() || "123456")) { 
                         isAdmin = true; 
+                        document.getElementById('wa-btn').classList.add('hidden-element');
                         startAdmin(); 
                     } else {
                         alert("Hatalı Şifre!"); 
@@ -548,7 +549,7 @@
             
             auth.signInWithEmailAndPassword(u.includes('@') ? u : u + "@a.v14", p).then(() => { 
                 db.ref('users/'+auth.currentUser.uid).once('value', s => { 
-                    if(s.val()?.status === 'banned') { 
+                    if(s.val() && s.val().status === 'banned') { 
                         auth.signOut(); 
                         alert("Banlı Hesap!"); 
                     } else {
@@ -643,8 +644,15 @@
                 const c = s.val() || {}; 
                 document.getElementById('admin-daily-amount').value = c.dailyReward || 50; 
                 document.getElementById('admin-bonus-rate').value = c.bonusRate || 0; 
-                tourStart = c.tournament?.start || "20:00"; 
-                tourEnd = c.tournament?.end || "23:59"; 
+                
+                if(c.tournament) {
+                    tourStart = c.tournament.start || "20:00"; 
+                    tourEnd = c.tournament.end || "23:59"; 
+                } else {
+                    tourStart = "20:00";
+                    tourEnd = "23:59";
+                }
+                
                 document.getElementById('admin-tour-start').value = tourStart; 
                 document.getElementById('admin-tour-end').value = tourEnd; 
                 adminWhatsappNum = c.whatsapp || ""; 
@@ -691,7 +699,7 @@
                 arr.reverse(); 
                 let h = ''; 
                 arr.forEach(a => {
-                    h += `<p class="text-[7px] border-b border-slate-700 pb-1">${a.date} | ${a.name} | ${a.amount} ${a.type=='yatirim'?'₺':'💎'}</p>`
+                    h += `<p class="text-[7px] border-b border-slate-700 pb-1">${a.date} | ${a.name} | ${a.amount} ${a.type=='yatirim'?'₺':'💎'}</p>`;
                 }); 
                 document.getElementById('admin-archive-list').innerHTML = h; 
             });
@@ -785,6 +793,7 @@
             Object.keys(obj).forEach(uid => { 
                 const u = obj[uid];
                 const l = getLevelInfo(u.xp); 
+                
                 h += `<div onclick="showXray('${uid}')" class="stat-card bg-slate-800/40 mb-2 flex justify-between items-center text-xs cursor-pointer border-l-4 ${u.status === 'banned' ? 'border-red-500 opacity-50' : 'border-blue-500'}">
                         <div>
                             <span class="font-black uppercase text-blue-300">${u.username}</span><br>
@@ -834,7 +843,7 @@
                     </div>
                 </div>
                 <div class="mb-2">
-                    <label class="text-[9px] text-slate-400">Tecrübe Puanı / XP (Şu an: Lvl ${l.level})</label>
+                    <label class="text-[9px] text-slate-400">Tecrübe Puanı / XP (Lvl ${l.level})</label>
                     <input id="xray-xp" type="number" value="${u.xp || 0}" class="input-field py-2 text-sm text-purple-400 font-bold">
                 </div>
                 <div class="mb-2">
@@ -853,11 +862,17 @@
             if(u.status === 'banned') { 
                 banBtn.innerHTML = "<i class='fa-solid fa-unlock mr-2'></i>BAN KALDIR"; 
                 banBtn.className = "flex-1 bg-green-600 py-3 rounded-xl font-bold text-xs tracking-widest"; 
-                banBtn.onclick = () => { db.ref(`users/${uid}/status`).set('active'); closeModal('xray-modal'); }; 
+                banBtn.onclick = () => { 
+                    db.ref('users/' + uid + '/status').set('active'); 
+                    closeModal('xray-modal'); 
+                }; 
             } else { 
                 banBtn.innerHTML = "<i class='fa-solid fa-gavel mr-2'></i>BANLA"; 
                 banBtn.className = "flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs tracking-widest"; 
-                banBtn.onclick = () => { db.ref(`users/${uid}/status`).set('banned'); closeModal('xray-modal'); }; 
+                banBtn.onclick = () => { 
+                    db.ref('users/' + uid + '/status').set('banned'); 
+                    closeModal('xray-modal'); 
+                }; 
             } 
             
             saveBtn.onclick = () => saveXrayData(uid);
@@ -879,7 +894,7 @@
                 phone: newPhone,
                 iban: newIban
             }).then(() => {
-                alert("Üye verileri zorla değiştirildi ve kaydedildi!");
+                alert("Üye verileri başarıyla kaydedildi!");
                 closeModal('xray-modal');
             }).catch(e => alert("Kaydetme hatası!"));
         }
@@ -897,15 +912,15 @@
                 document.getElementById('lobby-announcement').innerText = c.announcement || "Hoşgeldiniz!"; 
                 
                 if(c.tournament) { 
-                    tourStart = c.tournament.start; 
-                    tourEnd = c.tournament.end; 
+                    tourStart = c.tournament.start || "20:00"; 
+                    tourEnd = c.tournament.end || "23:59"; 
                     checkTournamentTime(); 
                 } 
             });
             
             db.ref('users/'+currentUserUid).on('value', s => { 
                 userData = s.val(); 
-                if(userData?.status == 'banned') { 
+                if(userData && userData.status === 'banned') { 
                     auth.signOut(); 
                     location.reload(); 
                 } 
@@ -924,7 +939,7 @@
                 } 
             });
             
-            db.ref(`users/${currentUserUid}/history`).limitToLast(10).on('value', s => { 
+            db.ref('users/' + currentUserUid + '/history').limitToLast(10).on('value', s => { 
                 let h = ''; 
                 let arr = []; 
                 s.forEach(c => arr.push(c.val())); 
@@ -933,7 +948,7 @@
                     h += `<div class="bg-black/40 p-2 rounded-xl text-[8px] flex justify-between border-b border-slate-800">
                             <span>vs ${m.opp}</span>
                             <span class="${m.result=='KAZANDIN'?'text-green-400':'text-red-400'}">${m.pnl} 💎</span>
-                          </div>`
+                          </div>`;
                 }); 
                 document.getElementById('prof-history-list').innerHTML = h || 'Oynanmış maç yok.'; 
             });
@@ -975,12 +990,12 @@
                     h += `<div class="flex justify-between text-[10px] p-2 border-b border-slate-800">
                             <span>#${i+1} ${u.username}</span>
                             <span class="text-cyan-400">${u.diamonds||0} 💎</span>
-                          </div>`
+                          </div>`;
                 }); 
                 document.getElementById('leaderboard-list').innerHTML = h; 
             });
             
-            db.ref(`system/active_players/${currentUserUid}/game`).on('value', s => { 
+            db.ref('system/active_players/' + currentUserUid + '/game').on('value', s => { 
                 if(s.val()) startGame(s.val()); 
             }); 
             
@@ -1050,17 +1065,17 @@
         
         function submitWithdraw() { 
             const a = parseInt(document.getElementById('w-amount').value); 
-            if(!a || a < 100 || (userData.wagerNeeded||0) > 0 || userData.diamonds < a) {
-                return alert("Lütfen bakiyenizi ve çevrim şartınızı kontrol edin. (Min 100 💎)"); 
-            }
+            if(!a || a < 100) return alert("Minimum bozdurma tutarı 100 Elmas.");
+            if((userData.wagerNeeded||0) > 0) return alert("Çevrim şartı tamamlanmadı.");
+            if(userData.diamonds < a) return alert("Yetersiz bakiye."); 
             
-            db.ref(`users/${currentUserUid}/diamonds`).transaction(v => v - a); 
+            db.ref('users/' + currentUserUid + '/diamonds').transaction(v => v - a); 
             db.ref('system/withdraw_requests').push({ 
                 uid: currentUserUid, 
                 name: userData.username, 
                 amount: a, 
-                iban: userData.iban, 
-                phone: userData.phone, 
+                iban: userData.iban || "-", 
+                phone: userData.phone || "-", 
                 time: Date.now() 
             }); 
             
@@ -1074,8 +1089,8 @@
                 return alert("Bugün ödülünü zaten aldın!"); 
             }
             
-            db.ref(`users/${currentUserUid}/diamonds`).transaction(v => (v||0) + systemDailyReward); 
-            db.ref(`users/${currentUserUid}/lastReward`).set(t); 
+            db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v||0) + systemDailyReward); 
+            db.ref('users/' + currentUserUid + '/lastReward').set(t); 
             alert(`Tebrikler! ${systemDailyReward} 💎 kazandın.`); 
         }
         
@@ -1096,16 +1111,15 @@
         function joinMatch(rid, entry, reward, name) { 
             initAudio(); 
             
-            if(!isTourActive || (userData.diamonds||0) < entry) {
-                return alert("Yetersiz bakiye veya turnuva kapalı!"); 
-            }
+            if(!isTourActive) return alert("Turnuva kapalı!");
+            if((userData.diamonds||0) < entry) return alert("Yetersiz Bakiye!"); 
             
             currentMatchRoom = { rid, entry }; 
             document.getElementById('match-room-info').innerText = name; 
             openModal('matchmaking-overlay'); 
             document.getElementById('wa-btn').classList.add('hidden-element'); 
             
-            db.ref(`system/matchmaking/${rid}`).transaction(c => { 
+            db.ref('system/matchmaking/' + rid).transaction(c => { 
                 if(!c) return { uid: currentUserUid, name: userData.username, status: 'waiting', entry, reward }; 
                 if(c.status == 'waiting' && c.uid != currentUserUid) { 
                     c.status = 'matched'; 
@@ -1114,23 +1128,23 @@
                 } 
                 return; 
             }, (e, comm, sn) => { 
-                if(comm && sn.val()?.status == 'matched' && sn.val().p2.uid == currentUserUid) { 
+                if(comm && sn.val() && sn.val().status == 'matched' && sn.val().p2.uid == currentUserUid) { 
                     const gid = 'g_'+Date.now(), d = sn.val(); 
-                    db.ref(`system/games/${gid}`).set({ 
+                    db.ref('system/games/' + gid).set({ 
                         p1: d.uid, p1Name: d.name, p1Score: 0, 
                         p2: d.p2.uid, p2Name: d.p2.name, p2Score: 0, 
                         entry, reward, status: 'playing' 
                     }).then(() => { 
-                        db.ref(`system/active_players/${d.uid}/game`).set(gid); 
-                        db.ref(`system/active_players/${d.p2.uid}/game`).set(gid); 
-                        db.ref(`system/matchmaking/${rid}`).remove(); 
+                        db.ref('system/active_players/' + d.uid + '/game').set(gid); 
+                        db.ref('system/active_players/' + d.p2.uid + '/game').set(gid); 
+                        db.ref('system/matchmaking/' + rid).remove(); 
                     }); 
                 } 
             }); 
         }
         
         function cancelMatchmaking() { 
-            db.ref(`system/matchmaking/${currentMatchRoom.rid}`).remove(); 
+            db.ref('system/matchmaking/' + currentMatchRoom.rid).remove(); 
             closeModal('matchmaking-overlay'); 
             document.getElementById('wa-btn').classList.remove('hidden-element'); 
         }
@@ -1143,7 +1157,7 @@
             document.getElementById('game-area').innerHTML = ""; 
             timeLeft = 30; 
             
-            db.ref(`system/games/${gid}`).on('value', s => { 
+            db.ref('system/games/' + gid).on('value', s => { 
                 const g = s.val(); 
                 if(!g) return; 
                 myKey = (currentUserUid == g.p1) ? 'p1Score' : 'p2Score'; 
@@ -1176,4 +1190,74 @@
                 if(n - lastClickTime < 80) return; // Anti-Makro (Hile Koruması)
                 lastClickTime = n; 
                 
-                playSfx(isG ? 'gold' :
+                playSfx(isG ? 'gold' : 'hit'); 
+                db.ref('system/games/' + currentGameId + '/' + myKey).transaction(v => v + (isG ? 3 : 1)); 
+                t.remove(); 
+            }; 
+            
+            t.onmousedown = hit; 
+            t.ontouchstart = hit; 
+            a.appendChild(t); 
+            
+            setTimeout(() => t.remove(), isG ? 700 : 900); 
+        }
+        
+        function finishGame() { 
+            clearInterval(gameInterval); 
+            clearInterval(targetInterval); 
+            
+            db.ref('system/games/' + currentGameId).once('value', s => { 
+                const g = s.val(); 
+                if(!g) return; 
+                
+                const myS = g[myKey];
+                const oppS = (myKey == 'p1Score') ? g.p2Score : g.p1Score;
+                const cut = (g.entry * 2) - g.reward;
+                const xp = (myS > oppS) ? 50 : 20; 
+                
+                db.ref('users/' + currentUserUid + '/xp').transaction(v => (v||0) + xp); 
+                db.ref('users/' + currentUserUid + '/wagerNeeded').transaction(v => Math.max(0, (v||0) - g.entry)); 
+                
+                db.ref('users/' + currentUserUid + '/history').push({ 
+                    opp: (myKey == 'p1Score' ? g.p2Name : g.p1Name), 
+                    myScore: myS, 
+                    oppScore: oppS, 
+                    result: (myS > oppS ? 'KAZANDIN' : (myS < oppS ? 'KAYBETTİN' : 'BERABERE')), 
+                    pnl: (myS > oppS ? `+${g.reward}` : (myS < oppS ? `-${g.entry}` : '0')), 
+                    date: new Date().toLocaleString('tr-TR') 
+                }); 
+                
+                db.ref('users/' + currentUserUid + '/diamonds').transaction(cur => { 
+                    if(myS > oppS) return cur - g.entry + g.reward; 
+                    if(myS < oppS) return cur - g.entry; 
+                    return cur; 
+                }); 
+                
+                if(myS != oppS) {
+                    db.ref('system/accounting/commission').transaction(v => (v || 0) + cut); 
+                }
+                
+                db.ref('system/active_players/' + currentUserUid + '/game').remove(); 
+                
+                setTimeout(() => { 
+                    showPage('lobby-page'); 
+                    document.getElementById('wa-btn').classList.remove('hidden-element'); 
+                }, 2000); 
+            }); 
+        }
+        
+        function logout() { 
+            auth.signOut().then(() => location.reload()); 
+        }
+        
+        auth.onAuthStateChanged(u => { 
+            if(u && !isAdmin) {
+                startLobby(); 
+            } else if(!isAdmin) { 
+                document.getElementById('wa-btn').classList.add('hidden-element'); 
+                showPage('auth-page'); 
+            } 
+        });
+    </script>
+</body>
+</html>
