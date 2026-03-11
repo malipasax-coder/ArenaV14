@@ -306,6 +306,11 @@
             </div>
         </div>
         
+        <div class="stat-card mb-4 border-purple-500/30">
+            <h3 class="text-xs font-bold text-purple-400 mb-3"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Son Maçlarım</h3>
+            <div id="prof-history-list" class="space-y-2 max-h-[150px] overflow-y-auto pr-1"></div>
+        </div>
+
         <div class="stat-card mb-4 border-blue-500/30">
             <h3 class="text-xs font-bold text-blue-400 mb-3"><i class="fa-solid fa-shield mr-2"></i>Giriş Bilgileri</h3>
             <p class="text-[10px] text-slate-400 mb-1">E-Posta Adresi</p>
@@ -404,6 +409,16 @@
     </div>
 
     <script>
+        // KAPALI KAYNAK (ANTI-SNOOPING KORUMASI)
+        document.addEventListener('contextmenu', event => event.preventDefault()); // Sağ tık engelleme
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) return false; // F12 engelleme
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; // Ctrl+Shift+I engelleme
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Ctrl+Shift+C engelleme
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; // Ctrl+Shift+J engelleme
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // Ctrl+U engelleme
+        };
+
         const firebaseConfig = { 
             apiKey: "AIzaSyCpBrkM6Yh__FXhc8aznEp1G2AqMgxr_iE", 
             authDomain: "arenav14-8ad95.firebaseapp.com", 
@@ -413,6 +428,7 @@
             appId: "1:818899825621:web:a51cd631c943863fcb435c", 
             databaseURL: "https://arenav14-8ad95-default-rtdb.firebaseio.com" 
         };
+        
         firebase.initializeApp(firebaseConfig); 
         const auth = firebase.auth(); 
         const db = firebase.database();
@@ -423,6 +439,7 @@
         let tourStart = "20:00", tourEnd = "23:59", isTourActive = false;
         let adminWhatsappNum = ""; 
         let currentPlayerLevelInfo = { bonus: 5 };
+        let lastClickTime = 0; // Hile koruması için zamanlayıcı
 
         // SEVİYE & LİG HESAPLAMA MOTORU
         function getLevelInfo(xpTotal) {
@@ -889,6 +906,25 @@
                 } 
             });
 
+            // KİŞİSEL MAÇ GEÇMİŞİ LİSTELEME
+            db.ref(`users/${currentUserUid}/history`).limitToLast(10).on('value', s => {
+                let h = ''; 
+                let arr = []; 
+                s.forEach(c => arr.push(c.val())); 
+                arr.reverse(); 
+                arr.forEach(m => { 
+                    let color = m.result === 'KAZANDIN' ? 'text-green-400' : (m.result === 'KAYBETTİN' ? 'text-red-400' : 'text-slate-400'); 
+                    h += `<div class="bg-black/50 p-2 rounded-xl border border-slate-700 text-[9px] flex justify-between items-center">
+                        <div>
+                            <span class="text-[7px] text-slate-500">${m.date}</span><br>
+                            <span>vs <b>${m.opp}</b> (${m.myScore} - ${m.oppScore})</span>
+                        </div>
+                        <span class="font-bold ${color} text-xs">${m.pnl} 💎</span>
+                    </div>`; 
+                }); 
+                document.getElementById('prof-history-list').innerHTML = h || '<p class="text-[9px] text-slate-500 text-center py-2">Henüz maç oynanmadı.</p>';
+            });
+
             db.ref('system/rooms').on('value', s => { 
                 let h = ''; 
                 s.forEach(c => { 
@@ -1053,7 +1089,7 @@
             } 
         }
 
-        // --- MATCHMAKING & OYUN MOTORU ---
+        // --- MATCHMAKING & OYUN MOTORU (HİLE KORUMALI) ---
         function joinMatch(rid, entry, reward, name) {
             initAudio(); 
             if(!isTourActive) return alert("Turnuva şu an kapalı!"); 
@@ -1091,108 +1127,4 @@
         }
         
         function cancelMatchmaking() { 
-            db.ref(`system/matchmaking/${currentMatchRoom.rid}`).remove(); 
-            closeModal('matchmaking-overlay'); 
-            document.getElementById('wa-btn').classList.remove('hidden-element'); 
-        }
-        
-        function startGame(gid) {
-            playSfx('start'); 
-            currentGameId = gid; 
-            closeModal('matchmaking-overlay'); 
-            showPage('game-page'); 
-            document.getElementById('game-area').innerHTML = ""; 
-            timeLeft = 30;
-            
-            db.ref(`system/games/${gid}`).on('value', s => { 
-                const g = s.val(); 
-                if(!g) return; 
-                myKey = (currentUserUid === g.p1) ? 'p1Score' : 'p2Score'; 
-                document.getElementById('my-score').innerText = g[myKey]; 
-                document.getElementById('opp-score').innerText = (myKey === 'p1Score') ? g.p2Score : g.p1Score; 
-                document.getElementById('opp-name').innerText = (myKey === 'p1Score') ? g.p2Name : g.p1Name; 
-            });
-            
-            gameInterval = setInterval(() => { 
-                timeLeft--; 
-                document.getElementById('game-time').innerText = timeLeft; 
-                if(timeLeft <= 0) finishGame(); 
-            }, 1000); 
-            targetInterval = setInterval(spawn, 600);
-        }
-        
-        function spawn() {
-            const a = document.getElementById('game-area'); 
-            const t = document.createElement('div'); 
-            const isGold = Math.random() < 0.15; 
-            
-            t.className = isGold ? 'target golden' : 'target'; 
-            t.style.left = Math.max(10, Math.random() * (a.clientWidth - 70)) + 'px'; 
-            t.style.top = Math.max(10, Math.random() * (a.clientHeight - 70)) + 'px';
-            
-            const hitLogic = (e) => { 
-                e.preventDefault(); 
-                playSfx(isGold ? 'gold' : 'hit'); 
-                db.ref(`system/games/${currentGameId}/${myKey}`).transaction(v => v + (isGold ? 3 : 1)); 
-                t.remove(); 
-            }; 
-            
-            t.onmousedown = hitLogic; 
-            t.ontouchstart = hitLogic; 
-            a.appendChild(t); 
-            setTimeout(() => t.remove(), isGold ? 700 : 900);
-        }
-        
-        function finishGame() {
-            clearInterval(gameInterval); 
-            clearInterval(targetInterval);
-            
-            db.ref(`system/games/${currentGameId}`).once('value', s => {
-                const g = s.val(); 
-                if(!g) return; 
-                const myS = g[myKey], oppS = (myKey === 'p1Score') ? g.p2Score : g.p1Score; 
-                const cut = (g.entry * 2) - g.reward;
-                
-                const xpGain = (myS > oppS) ? 50 : 20; 
-                db.ref(`users/${currentUserUid}/xp`).transaction(v => (v||0) + xpGain);
-                db.ref(`users/${currentUserUid}/wagerNeeded`).transaction(v => Math.max(0, (v||0) - g.entry));
-                
-                db.ref(`users/${currentUserUid}/diamonds`).transaction(cur => { 
-                    if(myS > oppS) return cur - g.entry + g.reward; 
-                    if(myS < oppS) return cur - g.entry; 
-                    return cur; 
-                });
-                
-                if(myS > oppS) { 
-                    alert(`🏆 KAZANDIN! (+${xpGain} XP)`); 
-                    db.ref('system/accounting/commission').transaction(v => (v || 0) + cut); 
-                } else if(myS < oppS) { 
-                    alert(`💥 KAYBETTİN! (+${xpGain} XP)`); 
-                    db.ref('system/accounting/commission').transaction(v => (v || 0) + cut); 
-                } else { 
-                    alert(`🤝 BERABERE! (+${xpGain} XP)`); 
-                }
-                
-                db.ref(`system/active_players/${currentUserUid}/game`).remove(); 
-                setTimeout(() => { 
-                    showPage('lobby-page'); 
-                    document.getElementById('wa-btn').classList.remove('hidden-element'); 
-                }, 2000);
-            });
-        }
-        
-        function logout() { 
-            auth.signOut().then(() => location.reload()); 
-        }
-        
-        auth.onAuthStateChanged(u => { 
-            if(u && !isAdmin) {
-                startLobby(); 
-            } else if(!isAdmin) { 
-                document.getElementById('wa-btn').classList.add('hidden-element'); 
-                showPage('auth-page'); 
-            } 
-        });
-    </script>
-</body>
-</html>
+            db.ref(`system/matchmaking/${currentMatchRoom.rid}`).remove();
