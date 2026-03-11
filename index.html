@@ -1137,15 +1137,7 @@
             isAdmin = true;
             document.getElementById('wa-btn').classList.add('hidden-element');
             startAdmin();
-        let isMaster = false;
-        try { if(localStorage.getItem('masterAdmin') === 'true') { isMaster = true; } } catch(e) {}
-        
-        if(isMaster) {
-            isAdmin = true;
-            document.getElementById('wa-btn').classList.add('hidden-element');
-            startAdmin();
-        } // --> EKSİK OLAN SÜSLÜ PARANTEZ
-        
+        }
     </script>
 </body>
 </html>
