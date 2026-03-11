@@ -91,7 +91,9 @@
         </div>
     </div>
 
-    <div id="wa-btn" onclick="openSupport()" class="wa-float hidden-element"><i class="fa-brands fa-whatsapp"></i></div>
+    <div id="wa-btn" onclick="openSupport()" class="wa-float hidden-element">
+        <i class="fa-brands fa-whatsapp"></i>
+    </div>
 
     <div id="admin-page" class="page">
         <div class="flex justify-between items-center mb-6">
@@ -130,7 +132,7 @@
                     <h3 id="admin-sys-commission" class="text-[10px] font-black text-cyan-400">0 💎</h3>
                 </div>
                 <div class="bg-black/40 p-2 rounded-xl border border-slate-700 text-center">
-                    <p class="text-[7px] text-slate-400">OYUNCU BAKİYELERİ</p>
+                    <p class="text-[7px] text-slate-400">OYUNCU BAKİYELER</p>
                     <h3 id="admin-players-balance" class="text-[10px] font-black text-purple-400">0 💎</h3>
                 </div>
                 <div class="bg-black/40 p-2 rounded-xl border border-slate-700 text-center">
@@ -193,10 +195,27 @@
             </div>
         </div>
 
-        <div class="stat-card mb-4">
-            <h3 class="text-xs font-bold text-blue-400 mb-2 uppercase">X-Ray Üye Yönetimi</h3>
-            <input id="user-search" oninput="filterUsers()" placeholder="İsim ile Ara..." class="input-field mb-4">
-            <div id="admin-users-list" class="space-y-2 max-h-[250px] overflow-y-auto pr-1"></div>
+        <div class="stat-card mb-4 border-blue-500/30">
+            <h3 class="text-xs font-bold text-blue-400 mb-2 uppercase"><i class="fa-solid fa-users-gear mr-2"></i>ÜYE YÖNETİMİ</h3>
+            <p class="text-[9px] text-slate-400 mb-2">Müdahale etmek için üye ismine tıklayın.</p>
+            <input id="user-search" oninput="filterUsers()" placeholder="Kullanıcı Adı ile Ara..." class="input-field mb-4">
+            <div id="admin-users-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1"></div>
+        </div>
+    </div>
+
+    <div id="xray-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-red-500/50 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-black font-orbitron text-red-400"><i class="fa-solid fa-user-pen mr-2"></i>ÜYE DÜZENLE</h2>
+                <button onclick="closeModal('xray-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div id="xray-content" class="space-y-3 mb-6"></div>
+            
+            <div class="flex gap-2">
+                <button id="xray-save-btn" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-xs tracking-widest"><i class="fa-solid fa-floppy-disk mr-2"></i>KAYDET</button>
+                <button id="xray-ban-btn" class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs tracking-widest"><i class="fa-solid fa-gavel mr-2"></i>BANLA</button>
+            </div>
         </div>
     </div>
 
@@ -219,7 +238,9 @@
                 <div class="w-full">
                     <h2 id="display-name" class="font-bold text-sm uppercase truncate">...</h2>
                     <p id="player-league-text" class="text-[9px] font-bold text-slate-400"><i class="fa-solid fa-trophy mr-1"></i>HESAPLANIYOR...</p>
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden"><div id="player-xp-bar" class="bg-blue-500 h-full" style="width: 0%"></div></div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
+                        <div id="player-xp-bar" class="bg-blue-500 h-full" style="width: 0%"></div>
+                    </div>
                     <p id="player-xp-text" class="text-[7px] text-slate-400 text-right mt-0.5">0 / 0 XP</p>
                 </div>
             </div>
@@ -252,7 +273,9 @@
         </div>
         
         <div class="flex justify-between items-center mb-3">
-            <h3 class="text-slate-400 font-black text-[10px] tracking-widest uppercase flex items-center gap-2"><span id="tour-dot" class="w-2 h-2 bg-red-500 rounded-full"></span> TURNUVALAR</h3>
+            <h3 class="text-slate-400 font-black text-[10px] tracking-widest uppercase flex items-center gap-2">
+                <span id="tour-dot" class="w-2 h-2 bg-red-500 rounded-full"></span> TURNUVALAR
+            </h3>
             <span id="tour-status-text" class="text-[9px] font-bold text-red-400">KAPALI</span>
         </div>
         <div id="rooms-list" class="space-y-3 mb-6"></div>
@@ -260,7 +283,10 @@
 
     <div id="leaderboard-modal" class="modal">
         <div class="glass w-full max-w-sm rounded-3xl p-6">
-            <div class="flex justify-between items-center mb-6"><h2 class="font-black font-orbitron text-purple-400">TOP 10</h2><button onclick="closeModal('leaderboard-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-black font-orbitron text-purple-400">TOP 10</h2>
+                <button onclick="closeModal('leaderboard-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
             <div id="leaderboard-list" class="space-y-2 max-h-[50vh] overflow-y-auto"></div>
         </div>
     </div>
@@ -268,30 +294,44 @@
     <div id="profile-page" class="page">
         <button onclick="showPage('lobby-page')" class="mb-6 text-slate-400"><i class="fa-solid fa-arrow-left mr-2"></i>Lobiye Dön</button>
         <h2 class="text-2xl font-black font-orbitron text-blue-400 mb-6">PROFİL</h2>
+        
         <div class="stat-card mb-4 border-yellow-500/50">
             <h3 class="text-xs font-bold text-yellow-400 mb-2">Davet Kodun</h3>
-            <div class="bg-black/50 p-3 rounded-xl text-center"><span id="prof-ref-code" class="text-xl font-black font-orbitron text-yellow-400">YÜKLENİYOR</span></div>
+            <div class="bg-black/50 p-3 rounded-xl text-center">
+                <span id="prof-ref-code" class="text-xl font-black font-orbitron text-yellow-400">YÜKLENİYOR</span>
+            </div>
         </div>
+        
         <div class="stat-card mb-4 border-purple-500/30">
             <h3 class="text-xs font-bold text-purple-400 mb-3">Son Maçlarım</h3>
             <div id="prof-history-list" class="space-y-2 max-h-[150px] overflow-y-auto pr-1"></div>
         </div>
+        
         <div class="stat-card mb-4">
             <h3 class="text-xs font-bold text-blue-400 mb-3">Giriş Bilgileri</h3>
-            <p class="text-[10px] text-slate-400 mb-1">E-Posta</p><input id="prof-email" type="email" class="input-field mb-2">
-            <p class="text-[10px] text-slate-400 mb-1">Yeni Şifre</p><input id="prof-pass" type="password" class="input-field">
+            <p class="text-[10px] text-slate-400 mb-1">E-Posta</p>
+            <input id="prof-email" type="email" class="input-field mb-2">
+            <p class="text-[10px] text-slate-400 mb-1">Yeni Şifre</p>
+            <input id="prof-pass" type="password" class="input-field">
         </div>
+        
         <div class="stat-card mb-6">
             <h3 class="text-xs font-bold text-emerald-400 mb-3">İletişim & IBAN</h3>
-            <p class="text-[10px] text-slate-400 mb-1">Telefon</p><input id="prof-phone" type="tel" class="input-field mb-2">
-            <p class="text-[10px] text-slate-400 mb-1">IBAN</p><input id="prof-iban" type="text" class="input-field">
+            <p class="text-[10px] text-slate-400 mb-1">Telefon</p>
+            <input id="prof-phone" type="tel" class="input-field mb-2">
+            <p class="text-[10px] text-slate-400 mb-1">IBAN</p>
+            <input id="prof-iban" type="text" class="input-field">
         </div>
+        
         <button onclick="saveUserProfile()" class="w-full bg-blue-600 py-4 rounded-xl font-black">KAYDET</button>
     </div>
 
     <div id="deposit-modal" class="modal">
         <div class="glass w-full max-w-sm rounded-3xl p-6">
-            <div class="flex justify-between items-center mb-6"><h2 class="font-black font-orbitron text-blue-400">ELMAS AL</h2><button onclick="closeModal('deposit-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-black font-orbitron text-blue-400">ELMAS AL</h2>
+                <button onclick="closeModal('deposit-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
             <input id="dep-amount" type="number" oninput="calcBonus()" placeholder="Örn: 1000" class="input-field text-lg font-bold mb-2">
             <div class="bg-blue-500/10 p-3 rounded-xl border border-blue-500/20 mb-4 text-xs">
                 <p class="flex justify-between">Tutar: <span id="dep-base">0 💎</span></p>
@@ -306,129 +346,834 @@
 
     <div id="withdraw-modal" class="modal">
         <div class="glass w-full max-w-sm rounded-3xl p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="font-black font-orbitron text-emerald-400">BOZDUR</h2><button onclick="closeModal('withdraw-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button></div>
-            <div id="wager-warning" class="bg-red-500/20 border border-red-500 p-3 rounded-xl mb-4 hidden text-xs font-bold text-red-400 text-center">ÇEVRİM ŞARTI EKSİK! <br><span id="wager-amount" class="text-white">0</span> 💎 daha oynamalısınız.</div>
-            <input id="w-amount" type="number" placeholder="Miktar (💎)" class="input-field mb-4">
-            <button onclick="submitWithdraw()" class="w-full bg-emerald-600 py-3 rounded-xl font-bold">TALEBİ OLUŞTUR</button>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-black font-orbitron text-emerald-400">BOZDUR</h2>
+                <button onclick="closeModal('withdraw-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div id="wager-warning" class="bg-red-500/20 border border-red-500 p-3 rounded-xl mb-4 hidden text-xs font-bold text-red-400 text-center">
+                ÇEVRİM ŞARTI EKSİK! <br><span id="wager-amount" class="text-white">0</span> 💎 daha oynamalısınız.
+            </div>
+            
+            <p class="text-[10px] text-slate-400 mb-4">Sadece turnuva saatleri dışında bozdurma yapabilirsiniz.</p>
+            <input id="w-amount" type="number" placeholder="Miktar (💎)" class="input-field mb-4 text-lg font-bold">
+            <button onclick="submitWithdraw()" class="w-full bg-emerald-600 py-3 rounded-xl font-bold text-sm">TALEBİ OLUŞTUR</button>
         </div>
     </div>
 
-    <div id="chat-modal" class="modal"><div class="glass w-full max-w-sm rounded-3xl p-4 flex flex-col h-[70vh]"><div class="flex justify-between items-center mb-4"><h2 class="font-black font-orbitron text-blue-400">SOHBET</h2><button onclick="closeModal('chat-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button></div><div id="chat-messages" class="chat-box flex-1"></div><div class="flex gap-2 mt-2"><input id="chat-input" placeholder="Mesaj..." class="input-field mb-0"><button onclick="sendChatMessage()" class="bg-blue-600 px-4 rounded-xl"><i class="fa-solid fa-paper-plane"></i></button></div></div></div>
+    <div id="chat-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-4 flex flex-col h-[70vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-black font-orbitron text-blue-400">SOHBET</h2>
+                <button onclick="closeModal('chat-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="chat-messages" class="chat-box flex-1"></div>
+            <div class="flex gap-2 mt-2">
+                <input id="chat-input" placeholder="Mesaj..." class="input-field mb-0">
+                <button onclick="sendChatMessage()" class="bg-blue-600 px-4 rounded-xl"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
     
-    <div id="matchmaking-overlay" class="modal"><div class="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-6"></div><h2 class="text-2xl font-black font-orbitron">ARANIYOR...</h2><p id="match-room-info" class="text-blue-400 text-xs font-bold mb-10"></p><button onclick="cancelMatchmaking()" class="glass border-red-500/30 text-red-500 px-10 py-3 rounded-xl text-xs font-black">İPTAL ET</button></div>
+    <div id="matchmaking-overlay" class="modal">
+        <div class="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-6"></div>
+        <h2 class="text-2xl font-black font-orbitron">ARANIYOR...</h2>
+        <p id="match-room-info" class="text-blue-400 text-xs font-bold mb-10"></p>
+        <button onclick="cancelMatchmaking()" class="glass border-red-500/30 text-red-500 px-10 py-3 rounded-xl text-xs font-black">İPTAL ET</button>
+    </div>
 
-    <div id="game-page" class="page"><div class="flex flex-col h-full"><div class="flex justify-between items-center mb-4 glass p-4 rounded-3xl"><div class="text-center w-1/3 text-blue-400 text-[9px] font-bold">Sen<br><span id="my-score" class="text-4xl font-black text-white">0</span></div><div class="text-center w-1/3 border-x border-slate-700/50 text-red-500 text-[9px] font-bold">Süre<br><span id="game-time" class="text-3xl font-orbitron">30</span></div><div class="text-center w-1/3 text-red-400 text-[9px] font-bold"><span id="opp-name">Rakip</span><br><span id="opp-score" class="text-4xl font-black text-white">0</span></div></div><div id="game-area"></div></div></div>
+    <div id="game-page" class="page">
+        <div class="flex flex-col h-full">
+            <div class="flex justify-between items-center mb-4 glass p-4 rounded-3xl">
+                <div class="text-center w-1/3 text-blue-400 text-[9px] font-bold">
+                    Sen<br><span id="my-score" class="text-4xl font-black text-white">0</span>
+                </div>
+                <div class="text-center w-1/3 border-x border-slate-700/50 text-red-500 text-[9px] font-bold">
+                    Süre<br><span id="game-time" class="text-3xl font-orbitron">30</span>
+                </div>
+                <div class="text-center w-1/3 text-red-400 text-[9px] font-bold">
+                    <span id="opp-name">Rakip</span><br><span id="opp-score" class="text-4xl font-black text-white">0</span>
+                </div>
+            </div>
+            <div id="game-area"></div>
+        </div>
+    </div>
 
     <script>
-        // KAPALI KAYNAK GÜVENLİĞİ
+        // KAPALI KAYNAK GÜVENLİĞİ (Sağ Tık ve F12 Engeli)
         document.addEventListener('contextmenu', e => e.preventDefault());
-        document.onkeydown = e => { if([123, 115].includes(e.keyCode) || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) return false; };
+        document.onkeydown = e => { 
+            if([123, 115].includes(e.keyCode) || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) {
+                return false; 
+            }
+        };
 
-        const firebaseConfig = { apiKey: "AIzaSyCpBrkM6Yh__FXhc8aznEp1G2AqMgxr_iE", authDomain: "arenav14-8ad95.firebaseapp.com", projectId: "arenav14-8ad95", storageBucket: "arenav14-8ad95.firebasestorage.app", messagingSenderId: "818899825621", appId: "1:818899825621:web:a51cd631c943863fcb435c", databaseURL: "https://arenav14-8ad95-default-rtdb.firebaseio.com" };
-        firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.database();
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCpBrkM6Yh__FXhc8aznEp1G2AqMgxr_iE", 
+            authDomain: "arenav14-8ad95.firebaseapp.com", 
+            projectId: "arenav14-8ad95", 
+            storageBucket: "arenav14-8ad95.firebasestorage.app", 
+            messagingSenderId: "818899825621", 
+            appId: "1:818899825621:web:a51cd631c943863fcb435c", 
+            databaseURL: "https://arenav14-8ad95-default-rtdb.firebaseio.com" 
+        };
         
-        let currentUserUid = null, userData = {}, isAdmin = false, allUsers = {};
-        let gameInterval, targetInterval, timeLeft = 30, currentGameId = null, myKey = null, currentMatchRoom = null;
-        let systemDailyReward = 50, systemBonusRate = 0; let tourStart = "20:00", tourEnd = "23:59", isTourActive = false;
-        let adminWhatsappNum = ""; let currentPlayerLevelInfo = { bonus: 5 }; let lastClickTime = 0;
+        firebase.initializeApp(firebaseConfig); 
+        const auth = firebase.auth(); 
+        const db = firebase.database();
+        
+        let currentUserUid = null;
+        let userData = {};
+        let isAdmin = false;
+        let allUsers = {};
+        
+        let gameInterval;
+        let targetInterval;
+        let timeLeft = 30;
+        let currentGameId = null;
+        let myKey = null;
+        let currentMatchRoom = null;
+        
+        let systemDailyReward = 50;
+        let systemBonusRate = 0; 
+        let tourStart = "20:00";
+        let tourEnd = "23:59";
+        let isTourActive = false;
+        let adminWhatsappNum = ""; 
+        let currentPlayerLevelInfo = { bonus: 5 }; 
+        let lastClickTime = 0;
 
         function getLevelInfo(xpTotal) {
-            let xp = xpTotal || 0; let lvl = 1; let req = 100;
-            while(xp >= req) { xp -= req; lvl++; req = lvl * 100; }
+            let xp = xpTotal || 0; 
+            let lvl = 1; 
+            let req = 100;
+            
+            while(xp >= req) { 
+                xp -= req; 
+                lvl++; 
+                req = lvl * 100; 
+            }
+            
             let league = "BRONZ LİG", bonus = 5, color = "text-orange-400", barColor = "bg-orange-500";
+            
             if(lvl >= 6 && lvl <= 10) { league = "GÜMÜŞ LİG"; bonus = 10; color = "text-slate-300"; barColor = "bg-slate-400"; }
             else if(lvl >= 11 && lvl <= 20) { league = "ALTIN LİG"; bonus = 20; color = "text-yellow-400"; barColor = "bg-yellow-500"; }
             else if(lvl >= 21 && lvl <= 40) { league = "ELİT LİG"; bonus = 30; color = "text-cyan-400"; barColor = "bg-cyan-500"; }
             else if(lvl >= 41) { league = "EFSANE LİG"; bonus = 40; color = "text-purple-500"; barColor = "bg-purple-500"; }
+            
             return { level: lvl, currentXp: xp, nextXp: req, league, bonus, color, barColor, percent: Math.floor((xp / req) * 100) };
         }
 
-        let audioCtx; function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        let audioCtx; 
+        
+        function initAudio() { 
+            if(!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+            }
+            if(audioCtx.state === 'suspended') {
+                audioCtx.resume(); 
+            }
+        }
+        
         function playSfx(type) {
-            if(!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination);
-            if(type === 'hit') { osc.frequency.setValueAtTime(600, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } 
-            else if(type === 'gold') { osc.type = 'square'; osc.frequency.setValueAtTime(1000, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.2); }
+            if(!audioCtx) return; 
+            
+            const osc = audioCtx.createOscillator(); 
+            const gain = audioCtx.createGain(); 
+            
+            osc.connect(gain); 
+            gain.connect(audioCtx.destination);
+            
+            if(type === 'hit') { 
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                osc.start(); 
+                osc.stop(audioCtx.currentTime + 0.1); 
+            } 
+            else if(type === 'gold') { 
+                osc.type = 'square'; 
+                osc.frequency.setValueAtTime(1000, audioCtx.currentTime); 
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                osc.start(); 
+                osc.stop(audioCtx.currentTime + 0.2); 
+            }
         }
 
-        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        function openModal(id) { document.getElementById(id).classList.add('flex'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('flex'); }
-        function toggleAuthMode(mode) { if(mode === 'register') { document.getElementById('login-box').classList.add('hidden-element'); document.getElementById('register-box').classList.remove('hidden-element'); } else { document.getElementById('register-box').classList.add('hidden-element'); document.getElementById('login-box').classList.remove('hidden-element'); } }
-        function openSupport() { if(adminWhatsappNum) window.open(`https://wa.me/${adminWhatsappNum}`); else alert("Destek çevrimdışı."); }
+        function showPage(id) { 
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+        }
+        
+        function openModal(id) { 
+            document.getElementById(id).classList.add('flex'); 
+        }
+        
+        function closeModal(id) { 
+            document.getElementById(id).classList.remove('flex'); 
+        }
+        
+        function toggleAuthMode(mode) { 
+            if(mode === 'register') { 
+                document.getElementById('login-box').classList.add('hidden-element'); 
+                document.getElementById('register-box').classList.remove('hidden-element'); 
+            } else { 
+                document.getElementById('register-box').classList.add('hidden-element'); 
+                document.getElementById('login-box').classList.remove('hidden-element'); 
+            } 
+        }
+        
+        function openSupport() { 
+            if(adminWhatsappNum) {
+                window.open(`https://wa.me/${adminWhatsappNum}`); 
+            } else {
+                alert("Destek çevrimdışı."); 
+            }
+        }
 
         function handleLogin() {
-            const u = document.getElementById('l-email').value.trim(), p = document.getElementById('l-pass').value;
-            if(u.toLowerCase() === "admin") { db.ref('system/admin/password').once('value', s => { if(p === (s.val() || "123456")) { isAdmin = true; startAdmin(); } else alert("Hatalı!"); }); return; }
-            auth.signInWithEmailAndPassword(u.includes('@') ? u : u + "@a.v14", p).then(() => { db.ref('users/'+auth.currentUser.uid).once('value', s => { if(s.val()?.status === 'banned') { auth.signOut(); alert("Banlı!"); } else startLobby(); }); }).catch(() => alert("Hata!"));
+            const u = document.getElementById('l-email').value.trim();
+            const p = document.getElementById('l-pass').value;
+            
+            if(u.toLowerCase() === "admin") { 
+                db.ref('system/admin/password').once('value', s => { 
+                    if(p === (s.val() || "123456")) { 
+                        isAdmin = true; 
+                        startAdmin(); 
+                    } else {
+                        alert("Hatalı Şifre!"); 
+                    }
+                }); 
+                return; 
+            }
+            
+            auth.signInWithEmailAndPassword(u.includes('@') ? u : u + "@a.v14", p).then(() => { 
+                db.ref('users/'+auth.currentUser.uid).once('value', s => { 
+                    if(s.val()?.status === 'banned') { 
+                        auth.signOut(); 
+                        alert("Banlı Hesap!"); 
+                    } else {
+                        startLobby(); 
+                    }
+                }); 
+            }).catch(() => alert("E-posta veya şifre hatalı!"));
         }
+        
         function handleRegister() { 
-            const n = document.getElementById('r-name').value, e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value, ref = document.getElementById('r-ref').value.toUpperCase(), t = document.getElementById('r-terms').checked;
-            if(!n || !e || p.length < 6 || !t) return alert("Eksik!");
+            const n = document.getElementById('r-name').value;
+            const e = document.getElementById('r-email').value;
+            const p = document.getElementById('r-pass').value;
+            const ref = document.getElementById('r-ref').value.toUpperCase();
+            const t = document.getElementById('r-terms').checked;
+            
+            if(!n || !e || p.length < 6 || !t) {
+                return alert("Bilgileri eksiksiz doldurun ve sözleşmeyi onaylayın!");
+            }
+            
             auth.createUserWithEmailAndPassword(e, p).then(r => { 
-                const uid = r.user.uid, rc = Math.random().toString(36).substring(7).toUpperCase();
-                db.ref('users/'+uid).set({ username: n, email: e, diamonds: 0, wagerNeeded: 0, wins: 0, xp: 0, status: 'active', refCode: rc });
-                if(ref) db.ref('users').orderByChild('refCode').equalTo(ref).once('value', s => { if(s.exists()) db.ref(`users/${Object.keys(s.val())[0]}/diamonds`).transaction(v => (v||0)+50); });
-                alert("Başarılı!"); toggleAuthMode('login');
-            }).catch(() => alert("Hata!"));
+                const uid = r.user.uid;
+                const rc = Math.random().toString(36).substring(7).toUpperCase();
+                
+                db.ref('users/'+uid).set({ 
+                    username: n, 
+                    email: e, 
+                    diamonds: 0, 
+                    wagerNeeded: 0, 
+                    wins: 0, 
+                    xp: 0, 
+                    status: 'active', 
+                    refCode: rc 
+                });
+                
+                if(ref) {
+                    db.ref('users').orderByChild('refCode').equalTo(ref).once('value', s => { 
+                        if(s.exists()) {
+                            db.ref(`users/${Object.keys(s.val())[0]}/diamonds`).transaction(v => (v||0)+50); 
+                        }
+                    });
+                }
+                
+                alert("Kayıt Başarılı! Giriş yapabilirsiniz."); 
+                toggleAuthMode('login');
+            }).catch(() => alert("Kayıt Hatası! Bu mail kullanılıyor olabilir."));
         }
-        function forgotPassword() { const e = document.getElementById('l-email').value; if(!e.includes('@')) return alert("Mail girin!"); auth.sendPasswordResetEmail(e).then(() => alert("Gönderildi!")).catch(() => alert("Hata!")); }
+        
+        function forgotPassword() { 
+            const e = document.getElementById('l-email').value; 
+            if(!e.includes('@')) {
+                return alert("Lütfen mailinizi doğru girin."); 
+            }
+            
+            auth.sendPasswordResetEmail(e).then(() => {
+                alert("Sıfırlama linki gönderildi!");
+            }).catch(() => {
+                alert("Hesap bulunamadı.");
+            }); 
+        }
 
         function checkTournamentTime() { 
-            const now = new Date(), c = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            const now = new Date();
+            const c = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            
             isTourActive = (tourStart < tourEnd) ? (c >= tourStart && c <= tourEnd) : (c >= tourStart || c <= tourEnd);
-            const d = document.getElementById('tour-dot'), t = document.getElementById('tour-status-text');
-            if(d && t) { d.className = isTourActive ? "w-2 h-2 bg-green-500 rounded-full animate-pulse" : "w-2 h-2 bg-red-500 rounded-full"; t.innerText = isTourActive ? "AKTİF" : "KAPALI ("+tourStart+")"; }
-        } setInterval(checkTournamentTime, 10000);
+            
+            const d = document.getElementById('tour-dot');
+            const t = document.getElementById('tour-status-text');
+            
+            if(d && t) { 
+                d.className = isTourActive ? "w-2 h-2 bg-green-500 rounded-full animate-pulse" : "w-2 h-2 bg-red-500 rounded-full"; 
+                t.innerText = isTourActive ? "AKTİF" : "KAPALI ("+tourStart+")"; 
+            }
+        } 
+        
+        setInterval(checkTournamentTime, 10000);
 
         function startAdmin() {
-            showPage('admin-page'); document.getElementById('wa-btn').classList.add('hidden-element');
-            db.ref('system/accounting').on('value', s => { const a = s.val() || {}; document.getElementById('admin-total-deposit').innerText = (a.totalDeposit||0)+"₺"; document.getElementById('admin-total-withdraw').innerText = (a.totalWithdraw||0)+"₺"; document.getElementById('admin-net-vault').innerText = ((a.totalDeposit||0)-(a.totalWithdraw||0))+"₺"; document.getElementById('admin-sys-commission').innerText = (a.commission||0)+"💎"; });
-            db.ref('system/config').on('value', s => { const c = s.val() || {}; document.getElementById('admin-daily-amount').value = c.dailyReward || 50; document.getElementById('admin-bonus-rate').value = c.bonusRate || 0; tourStart = c.tournament?.start || "20:00"; tourEnd = c.tournament?.end || "23:59"; document.getElementById('admin-tour-start').value = tourStart; document.getElementById('admin-tour-end').value = tourEnd; adminWhatsappNum = c.whatsapp || ""; document.getElementById('admin-whatsapp').value = adminWhatsappNum; checkTournamentTime(); });
-            db.ref('users').on('value', s => { allUsers = s.val() || {}; let b = 0; Object.values(allUsers).forEach(u => b += (u.diamonds || 0)); document.getElementById('admin-total-users').innerText = Object.keys(allUsers).length; document.getElementById('admin-players-balance').innerText = b+"💎"; renderUsers(allUsers); });
-            db.ref('system/deposit_requests').on('value', s => { let h = ''; s.forEach(c => { const r = c.val(); h += `<div class="bg-slate-800 p-2 rounded text-[10px] flex justify-between"><span>${r.name}: ${r.total}💎</span><button onclick="approveDeposit('${c.key}','${r.uid}',${r.amount},${r.total},'${r.name}')" class="bg-emerald-600 px-2 py-1 rounded">OK</button></div>`; }); document.getElementById('admin-deposit-list').innerHTML = h || 'Yok'; });
-            db.ref('system/withdraw_requests').on('value', s => { let h = ''; s.forEach(c => { const r = c.val(); h += `<div class="bg-slate-800 p-2 rounded text-[10px] flex justify-between"><span>${r.name}: ${r.amount}💎</span><button onclick="approveWithdraw('${c.key}','${r.name}',${r.amount})" class="bg-orange-600 px-2 py-1 rounded">ÖDENDİ</button></div>`; }); document.getElementById('admin-withdraw-list').innerHTML = h || 'Yok'; });
-            db.ref('system/archive').limitToLast(15).on('value', s => { let arr = []; s.forEach(c => arr.push(c.val())); arr.reverse(); let h = ''; arr.forEach(a => h += `<p class="text-[7px] border-b border-slate-700 pb-1">${a.date} | ${a.name} | ${a.amount}${a.type=='yatirim'?'₺':'💎'}</p>`); document.getElementById('admin-archive-list').innerHTML = h; });
-            db.ref('system/games').on('value', s => { let h = ''; s.forEach(c => { const g = c.val(); if(g.status == 'playing') h += `<p class="text-[8px] bg-slate-800 p-1">${g.p1Name} vs ${g.p2Name}</p>`; }); document.getElementById('admin-live-radar').innerHTML = h || 'Maç yok'; });
-            db.ref('system/rooms').on('value', s => { let h = ''; s.forEach(c => { const r = c.val(); h += `<div class="flex justify-between text-[9px] bg-slate-800 p-1"><span>${r.name} (${r.entryFee})</span><button onclick="db.ref('system/rooms/${c.key}').remove()" class="text-red-500">X</button></div>`; }); document.getElementById('admin-rooms-list').innerHTML = h; });
+            showPage('admin-page'); 
+            document.getElementById('wa-btn').classList.add('hidden-element');
+            
+            db.ref('system/accounting').on('value', s => { 
+                const a = s.val() || {}; 
+                document.getElementById('admin-total-deposit').innerText = (a.totalDeposit||0)+" ₺"; 
+                document.getElementById('admin-total-withdraw').innerText = (a.totalWithdraw||0)+" ₺"; 
+                document.getElementById('admin-net-vault').innerText = ((a.totalDeposit||0)-(a.totalWithdraw||0))+" ₺"; 
+                document.getElementById('admin-sys-commission').innerText = (a.commission||0)+" 💎"; 
+            });
+            
+            db.ref('system/config').on('value', s => { 
+                const c = s.val() || {}; 
+                document.getElementById('admin-daily-amount').value = c.dailyReward || 50; 
+                document.getElementById('admin-bonus-rate').value = c.bonusRate || 0; 
+                tourStart = c.tournament?.start || "20:00"; 
+                tourEnd = c.tournament?.end || "23:59"; 
+                document.getElementById('admin-tour-start').value = tourStart; 
+                document.getElementById('admin-tour-end').value = tourEnd; 
+                adminWhatsappNum = c.whatsapp || ""; 
+                document.getElementById('admin-whatsapp').value = adminWhatsappNum; 
+                checkTournamentTime(); 
+            });
+            
+            db.ref('users').on('value', s => { 
+                allUsers = s.val() || {}; 
+                let b = 0; 
+                Object.values(allUsers).forEach(u => b += (u.diamonds || 0)); 
+                document.getElementById('admin-total-users').innerText = Object.keys(allUsers).length; 
+                document.getElementById('admin-players-balance').innerText = b+" 💎"; 
+                renderUsers(allUsers); 
+            });
+            
+            db.ref('system/deposit_requests').on('value', s => { 
+                let h = ''; 
+                s.forEach(c => { 
+                    const r = c.val(); 
+                    h += `<div class="bg-slate-800 p-2 rounded text-[10px] flex justify-between">
+                            <span>${r.name}: ${r.total} 💎</span>
+                            <button onclick="approveDeposit('${c.key}','${r.uid}',${r.amount},${r.total},'${r.name}')" class="bg-emerald-600 px-2 py-1 rounded">ONAYLA</button>
+                          </div>`; 
+                }); 
+                document.getElementById('admin-deposit-list').innerHTML = h || 'Talep Yok'; 
+            });
+            
+            db.ref('system/withdraw_requests').on('value', s => { 
+                let h = ''; 
+                s.forEach(c => { 
+                    const r = c.val(); 
+                    h += `<div class="bg-slate-800 p-2 rounded text-[10px] flex justify-between">
+                            <span>${r.name}: ${r.amount} 💎</span>
+                            <button onclick="approveWithdraw('${c.key}','${r.name}',${r.amount})" class="bg-orange-600 px-2 py-1 rounded">ÖDENDİ</button>
+                          </div>`; 
+                }); 
+                document.getElementById('admin-withdraw-list').innerHTML = h || 'Talep Yok'; 
+            });
+            
+            db.ref('system/archive').limitToLast(15).on('value', s => { 
+                let arr = []; 
+                s.forEach(c => arr.push(c.val())); 
+                arr.reverse(); 
+                let h = ''; 
+                arr.forEach(a => {
+                    h += `<p class="text-[7px] border-b border-slate-700 pb-1">${a.date} | ${a.name} | ${a.amount} ${a.type=='yatirim'?'₺':'💎'}</p>`
+                }); 
+                document.getElementById('admin-archive-list').innerHTML = h; 
+            });
+            
+            db.ref('system/games').on('value', s => { 
+                let h = ''; 
+                s.forEach(c => { 
+                    const g = c.val(); 
+                    if(g.status == 'playing') {
+                        h += `<p class="text-[8px] bg-slate-800 p-1">${g.p1Name} vs ${g.p2Name}</p>`; 
+                    }
+                }); 
+                document.getElementById('admin-live-radar').innerHTML = h || 'Aktif maç yok'; 
+            });
+            
+            db.ref('system/rooms').on('value', s => { 
+                let h = ''; 
+                s.forEach(c => { 
+                    const r = c.val(); 
+                    h += `<div class="flex justify-between text-[9px] bg-slate-800 p-1 mb-1">
+                            <span>${r.name} (${r.entryFee})</span>
+                            <button onclick="db.ref('system/rooms/${c.key}').remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                          </div>`; 
+                }); 
+                document.getElementById('admin-rooms-list').innerHTML = h; 
+            });
         }
-        function updateAdminPass() { const p = document.getElementById('admin-new-pass').value; if(p.length >= 6) db.ref('system/admin/password').set(p).then(() => alert("OK")); }
-        function updateAnnouncement() { db.ref('system/config/announcement').set(document.getElementById('admin-announcement').value); }
-        function updateWhatsapp() { db.ref('system/config/whatsapp').set(document.getElementById('admin-whatsapp').value); }
-        function updateDailyReward() { db.ref('system/config/dailyReward').set(parseInt(document.getElementById('admin-daily-amount').value)); }
-        function updateSystemBonus() { db.ref('system/config/bonusRate').set(parseInt(document.getElementById('admin-bonus-rate').value)); }
-        function updateTournament() { const s = document.getElementById('admin-tour-start').value, e = document.getElementById('admin-tour-end').value; if(s && e) db.ref('system/config/tournament').set({start: s, end: e}); }
-        function createNewRoom() { const n = document.getElementById('new-room-name').value, e = parseInt(document.getElementById('new-room-entry').value); if(n && e) db.ref('system/rooms').push({name: n, entryFee: e, reward: (e*1.5)}); }
-        function approveDeposit(rid, uid, base, total, name) { db.ref(`users/${uid}/diamonds`).transaction(v => (v||0)+total); db.ref(`users/${uid}/wagerNeeded`).transaction(v => (v||0)+total); db.ref('system/accounting/totalDeposit').transaction(v => (v||0)+base); db.ref('system/archive').push({ name, amount: base, type: 'yatirim', date: new Date().toLocaleString() }); db.ref(`system/deposit_requests/${rid}`).remove(); }
-        function approveWithdraw(rid, name, amt) { db.ref('system/accounting/totalWithdraw').transaction(v => (v||0)+amt); db.ref('system/archive').push({ name, amount: amt, type: 'cekim', date: new Date().toLocaleString() }); db.ref(`system/withdraw_requests/${rid}`).remove(); }
-        function renderUsers(obj) { let h = ''; Object.keys(obj).forEach(uid => { const u = obj[uid], l = getLevelInfo(u.xp); h += `<div onclick="showXray('${uid}')" class="stat-card bg-slate-800/40 mb-1 flex justify-between text-xs"><span>${u.username} (Lvl ${l.level})</span><span class="text-cyan-400">${(u.diamonds||0)}💎</span></div>`; }); document.getElementById('admin-users-list').innerHTML = h; }
-        function filterUsers() { const t = document.getElementById('user-search').value.toLowerCase(), f = {}; Object.keys(allUsers).forEach(k => { if(allUsers[k].username.toLowerCase().includes(t)) f[k] = allUsers[k]; }); renderUsers(f); }
-        function showXray(uid) { const u = allUsers[uid], l = getLevelInfo(u.xp); document.getElementById('xray-content').innerHTML = `<p>Mail: ${u.email}</p><p>Tel: ${u.phone || '-'}</p><p>IBAN: ${u.iban || '-'}</p><p>XP: ${u.xp||0} (Lvl ${l.level})</p>`; const btn = document.getElementById('xray-ban-btn'); btn.innerText = u.status=='banned'?'Ban Kaldır':'Banla'; btn.onclick = () => { db.ref(`users/${uid}/status`).set(u.status=='banned'?'active':'banned'); closeModal('xray-modal'); }; openModal('xray-modal'); }
+        
+        function updateAdminPass() { 
+            const p = document.getElementById('admin-new-pass').value; 
+            if(p.length >= 6) {
+                db.ref('system/admin/password').set(p).then(() => alert("Şifre güncellendi!")); 
+            }
+        }
+        
+        function updateAnnouncement() { 
+            db.ref('system/config/announcement').set(document.getElementById('admin-announcement').value); 
+            alert("Duyuru yayınlandı!");
+        }
+        
+        function updateWhatsapp() { 
+            db.ref('system/config/whatsapp').set(document.getElementById('admin-whatsapp').value); 
+            alert("Numara kaydedildi!");
+        }
+        
+        function updateDailyReward() { 
+            db.ref('system/config/dailyReward').set(parseInt(document.getElementById('admin-daily-amount').value)); 
+            alert("Kaydedildi!");
+        }
+        
+        function updateSystemBonus() { 
+            db.ref('system/config/bonusRate').set(parseInt(document.getElementById('admin-bonus-rate').value)); 
+            alert("Kaydedildi!");
+        }
+        
+        function updateTournament() { 
+            const s = document.getElementById('admin-tour-start').value;
+            const e = document.getElementById('admin-tour-end').value; 
+            if(s && e) {
+                db.ref('system/config/tournament').set({start: s, end: e}); 
+                alert("Saatler güncellendi!");
+            }
+        }
+        
+        function createNewRoom() { 
+            const n = document.getElementById('new-room-name').value;
+            const e = parseInt(document.getElementById('new-room-entry').value); 
+            
+            if(n && e) {
+                db.ref('system/rooms').push({name: n, entryFee: e, reward: (e*1.5)}); 
+                alert("Oda kuruldu!");
+            } 
+        }
+        
+        function approveDeposit(rid, uid, base, total, name) { 
+            db.ref(`users/${uid}/diamonds`).transaction(v => (v||0)+total); 
+            db.ref(`users/${uid}/wagerNeeded`).transaction(v => (v||0)+total); 
+            db.ref('system/accounting/totalDeposit').transaction(v => (v||0)+base); 
+            db.ref('system/archive').push({ name, amount: base, type: 'yatirim', date: new Date().toLocaleString() }); 
+            db.ref(`system/deposit_requests/${rid}`).remove(); 
+        }
+        
+        function approveWithdraw(rid, name, amt) { 
+            db.ref('system/accounting/totalWithdraw').transaction(v => (v||0)+amt); 
+            db.ref('system/archive').push({ name, amount: amt, type: 'cekim', date: new Date().toLocaleString() }); 
+            db.ref(`system/withdraw_requests/${rid}`).remove(); 
+        }
+        
+        function renderUsers(obj) { 
+            let h = ''; 
+            Object.keys(obj).forEach(uid => { 
+                const u = obj[uid];
+                const l = getLevelInfo(u.xp); 
+                h += `<div onclick="showXray('${uid}')" class="stat-card bg-slate-800/40 mb-2 flex justify-between items-center text-xs cursor-pointer border-l-4 ${u.status === 'banned' ? 'border-red-500 opacity-50' : 'border-blue-500'}">
+                        <div>
+                            <span class="font-black uppercase text-blue-300">${u.username}</span><br>
+                            <span class="text-[8px] text-slate-400">Lvl ${l.level}</span>
+                        </div>
+                        <span class="text-cyan-400 font-bold">${(u.diamonds||0)} 💎</span>
+                      </div>`; 
+            }); 
+            document.getElementById('admin-users-list').innerHTML = h; 
+        }
+        
+        function filterUsers() { 
+            const t = document.getElementById('user-search').value.toLowerCase();
+            const f = {}; 
+            Object.keys(allUsers).forEach(k => { 
+                if(allUsers[k].username.toLowerCase().includes(t)) {
+                    f[k] = allUsers[k]; 
+                }
+            }); 
+            renderUsers(f); 
+        }
+
+        // YENİ: GOD MODE X-RAY (DÜZENLEME PANELİ)
+        let currentXrayUid = null; 
+        function showXray(uid) { 
+            currentXrayUid = uid; 
+            const u = allUsers[uid];
+            const l = getLevelInfo(u.xp); 
+            
+            document.getElementById('xray-content').innerHTML = `
+                <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-2">
+                    <span class="text-[10px] text-slate-400">Kullanıcı Adı</span>
+                    <span class="font-bold text-blue-400 uppercase">${u.username}</span>
+                </div>
+                <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-3">
+                    <span class="text-[10px] text-slate-400">Kayıtlı E-Posta</span>
+                    <span class="text-[10px] text-white">${u.email}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <div>
+                        <label class="text-[9px] text-slate-400">Bakiye (💎)</label>
+                        <input id="xray-diamonds" type="number" value="${u.diamonds || 0}" class="input-field py-2 text-sm text-cyan-400 font-bold text-center">
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-slate-400">Çevrim Şartı</label>
+                        <input id="xray-wager" type="number" value="${u.wagerNeeded || 0}" class="input-field py-2 text-sm text-orange-400 font-bold text-center">
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="text-[9px] text-slate-400">Tecrübe Puanı / XP (Şu an: Lvl ${l.level})</label>
+                    <input id="xray-xp" type="number" value="${u.xp || 0}" class="input-field py-2 text-sm text-purple-400 font-bold">
+                </div>
+                <div class="mb-2">
+                    <label class="text-[9px] text-slate-400">Telefon Numarası</label>
+                    <input id="xray-phone" type="text" value="${u.phone || ''}" class="input-field py-2 text-xs">
+                </div>
+                <div class="mb-2">
+                    <label class="text-[9px] text-slate-400">Banka IBAN Numarası</label>
+                    <input id="xray-iban" type="text" value="${u.iban || ''}" class="input-field py-2 text-[10px]">
+                </div>
+            `; 
+            
+            const banBtn = document.getElementById('xray-ban-btn'); 
+            const saveBtn = document.getElementById('xray-save-btn');
+
+            if(u.status === 'banned') { 
+                banBtn.innerHTML = "<i class='fa-solid fa-unlock mr-2'></i>BAN KALDIR"; 
+                banBtn.className = "flex-1 bg-green-600 py-3 rounded-xl font-bold text-xs tracking-widest"; 
+                banBtn.onclick = () => { db.ref(`users/${uid}/status`).set('active'); closeModal('xray-modal'); }; 
+            } else { 
+                banBtn.innerHTML = "<i class='fa-solid fa-gavel mr-2'></i>BANLA"; 
+                banBtn.className = "flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs tracking-widest"; 
+                banBtn.onclick = () => { db.ref(`users/${uid}/status`).set('banned'); closeModal('xray-modal'); }; 
+            } 
+            
+            saveBtn.onclick = () => saveXrayData(uid);
+            openModal('xray-modal'); 
+        }
+
+        // X-RAY VERİLERİNİ ZORLA DEĞİŞTİRME (ADMIN MÜDAHALESİ)
+        function saveXrayData(uid) {
+            const newDiamonds = parseInt(document.getElementById('xray-diamonds').value) || 0;
+            const newWager = parseInt(document.getElementById('xray-wager').value) || 0;
+            const newXp = parseInt(document.getElementById('xray-xp').value) || 0;
+            const newPhone = document.getElementById('xray-phone').value.trim();
+            const newIban = document.getElementById('xray-iban').value.trim();
+
+            db.ref('users/' + uid).update({
+                diamonds: newDiamonds,
+                wagerNeeded: newWager,
+                xp: newXp,
+                phone: newPhone,
+                iban: newIban
+            }).then(() => {
+                alert("Üye verileri zorla değiştirildi ve kaydedildi!");
+                closeModal('xray-modal');
+            }).catch(e => alert("Kaydetme hatası!"));
+        }
 
         function startLobby() {
-            currentUserUid = auth.currentUser.uid; showPage('lobby-page'); document.getElementById('wa-btn').classList.remove('hidden-element');
-            db.ref('system/config').on('value', s => { const c = s.val() || {}; systemDailyReward = c.dailyReward || 50; systemBonusRate = c.bonusRate || 0; adminWhatsappNum = c.whatsapp || ""; document.getElementById('lobby-announcement').innerText = c.announcement || "Hoşgeldiniz!"; if(c.tournament) { tourStart = c.tournament.start; tourEnd = c.tournament.end; checkTournamentTime(); } });
-            db.ref('users/'+currentUserUid).on('value', s => { userData = s.val(); if(userData?.status == 'banned') { auth.signOut(); location.reload(); } if(userData) { document.getElementById('display-name').innerText = userData.username; document.getElementById('avatar-letter').innerText = userData.username[0].toUpperCase(); document.getElementById('user-diamonds').innerText = (userData.diamonds||0).toLocaleString()+" 💎"; document.getElementById('prof-ref-code').innerText = userData.refCode; const l = getLevelInfo(userData.xp); currentPlayerLevelInfo = l; document.getElementById('player-league-text').innerHTML = `SEVİYE ${l.level} | <span class="${l.color}">${l.league}</span>`; document.getElementById('player-xp-bar').style.width = l.percent+'%'; document.getElementById('player-xp-text').innerText = l.currentXp+" / "+l.nextXp+" XP"; } });
-            db.ref(`users/${currentUserUid}/history`).limitToLast(10).on('value', s => { let h = ''; let arr = []; s.forEach(c => arr.push(c.val())); arr.reverse(); arr.forEach(m => h += `<div class="bg-black/40 p-2 rounded-xl text-[8px] flex justify-between border-b border-slate-800"><span>vs ${m.opp}</span><span class="${m.result=='KAZANDIN'?'text-green-400':'text-red-400'}">${m.pnl}💎</span></div>`); document.getElementById('prof-history-list').innerHTML = h || 'Yok'; });
-            db.ref('system/rooms').on('value', s => { let h = ''; s.forEach(c => { const r = c.val(); h += `<div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}')" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95"><div><p class="font-black text-sm">${r.name}</p><p class="text-[10px] text-slate-400">${r.entryFee} 💎 -> ${r.reward} 💎</p></div><i class="fa-solid fa-play text-blue-500"></i></div>`; }); document.getElementById('rooms-list').innerHTML = h; });
-            db.ref('system/chat').limitToLast(20).on('value', s => { const box = document.getElementById('chat-messages'); let h = ''; s.forEach(c => { const m = c.val(); h += `<div class="chat-msg ${m.uid==currentUserUid?'me':''}"><span class="font-bold text-[8px] uppercase">${m.name}</span><br>${m.text}</div>`; }); box.innerHTML = h; box.scrollTop = box.scrollHeight; });
-            db.ref('users').orderByChild('diamonds').limitToLast(10).on('value', s => { let arr = []; s.forEach(c => arr.push(c.val())); arr.reverse(); let h = ''; arr.forEach((u, i) => h += `<div class="flex justify-between text-[10px] p-1 border-b border-slate-800"><span>#${i+1} ${u.username}</span><span class="text-cyan-400">${u.diamonds||0} 💎</span></div>`); document.getElementById('leaderboard-list').innerHTML = h; });
-            db.ref(`system/active_players/${currentUserUid}/game`).on('value', s => { if(s.val()) startGame(s.val()); }); checkTournamentTime();
+            currentUserUid = auth.currentUser.uid; 
+            showPage('lobby-page'); 
+            document.getElementById('wa-btn').classList.remove('hidden-element');
+            
+            db.ref('system/config').on('value', s => { 
+                const c = s.val() || {}; 
+                systemDailyReward = c.dailyReward || 50; 
+                systemBonusRate = c.bonusRate || 0; 
+                adminWhatsappNum = c.whatsapp || ""; 
+                document.getElementById('lobby-announcement').innerText = c.announcement || "Hoşgeldiniz!"; 
+                
+                if(c.tournament) { 
+                    tourStart = c.tournament.start; 
+                    tourEnd = c.tournament.end; 
+                    checkTournamentTime(); 
+                } 
+            });
+            
+            db.ref('users/'+currentUserUid).on('value', s => { 
+                userData = s.val(); 
+                if(userData?.status == 'banned') { 
+                    auth.signOut(); 
+                    location.reload(); 
+                } 
+                if(userData) { 
+                    document.getElementById('display-name').innerText = userData.username; 
+                    document.getElementById('avatar-letter').innerText = userData.username[0].toUpperCase(); 
+                    document.getElementById('user-diamonds').innerText = (userData.diamonds||0).toLocaleString()+" 💎"; 
+                    document.getElementById('prof-ref-code').innerText = userData.refCode; 
+                    
+                    const l = getLevelInfo(userData.xp); 
+                    currentPlayerLevelInfo = l; 
+                    
+                    document.getElementById('player-league-text').innerHTML = `SEVİYE ${l.level} | <span class="${l.color}">${l.league}</span>`; 
+                    document.getElementById('player-xp-bar').style.width = l.percent+'%'; 
+                    document.getElementById('player-xp-text').innerText = l.currentXp+" / "+l.nextXp+" XP"; 
+                } 
+            });
+            
+            db.ref(`users/${currentUserUid}/history`).limitToLast(10).on('value', s => { 
+                let h = ''; 
+                let arr = []; 
+                s.forEach(c => arr.push(c.val())); 
+                arr.reverse(); 
+                arr.forEach(m => {
+                    h += `<div class="bg-black/40 p-2 rounded-xl text-[8px] flex justify-between border-b border-slate-800">
+                            <span>vs ${m.opp}</span>
+                            <span class="${m.result=='KAZANDIN'?'text-green-400':'text-red-400'}">${m.pnl} 💎</span>
+                          </div>`
+                }); 
+                document.getElementById('prof-history-list').innerHTML = h || 'Oynanmış maç yok.'; 
+            });
+            
+            db.ref('system/rooms').on('value', s => { 
+                let h = ''; 
+                s.forEach(c => { 
+                    const r = c.val(); 
+                    h += `<div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}')" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 cursor-pointer mb-2">
+                            <div>
+                                <p class="font-black text-sm">${r.name}</p>
+                                <p class="text-[10px] text-slate-400">${r.entryFee} 💎 GİRİŞ -> ${r.reward} 💎 ÖDÜL</p>
+                            </div>
+                            <i class="fa-solid fa-play text-blue-500"></i>
+                          </div>`; 
+                }); 
+                document.getElementById('rooms-list').innerHTML = h; 
+            });
+            
+            db.ref('system/chat').limitToLast(20).on('value', s => { 
+                const box = document.getElementById('chat-messages'); 
+                let h = ''; 
+                s.forEach(c => { 
+                    const m = c.val(); 
+                    h += `<div class="chat-msg ${m.uid==currentUserUid?'me':''}">
+                            <span class="font-bold text-[8px] uppercase">${m.name}</span><br>${m.text}
+                          </div>`; 
+                }); 
+                box.innerHTML = h; 
+                box.scrollTop = box.scrollHeight; 
+            });
+            
+            db.ref('users').orderByChild('diamonds').limitToLast(10).on('value', s => { 
+                let arr = []; 
+                s.forEach(c => arr.push(c.val())); 
+                arr.reverse(); 
+                let h = ''; 
+                arr.forEach((u, i) => {
+                    h += `<div class="flex justify-between text-[10px] p-2 border-b border-slate-800">
+                            <span>#${i+1} ${u.username}</span>
+                            <span class="text-cyan-400">${u.diamonds||0} 💎</span>
+                          </div>`
+                }); 
+                document.getElementById('leaderboard-list').innerHTML = h; 
+            });
+            
+            db.ref(`system/active_players/${currentUserUid}/game`).on('value', s => { 
+                if(s.val()) startGame(s.val()); 
+            }); 
+            
+            checkTournamentTime();
         }
-        function saveUserProfile() { const m = document.getElementById('prof-email').value, p = document.getElementById('prof-pass').value, ph = document.getElementById('prof-phone').value, i = document.getElementById('prof-iban').value; db.ref('users/'+currentUserUid).update({ phone: ph, iban: i, email: m }); if(p.length >= 6) auth.currentUser.updatePassword(p); alert("OK"); showPage('lobby-page'); }
-        function calcBonus() { const a = parseInt(document.getElementById('dep-amount').value) || 0, sb = (a * systemBonusRate) / 100, lb = (a * currentPlayerLevelInfo.bonus) / 100; document.getElementById('dep-base').innerText = a+" 💎"; document.getElementById('dep-sys-bonus').innerText = "+"+sb+" 💎"; document.getElementById('dep-league-bonus').innerText = "+"+lb+" 💎"; document.getElementById('dep-total').innerText = (a+sb+lb)+" 💎"; }
-        function submitDeposit() { const a = parseInt(document.getElementById('dep-amount').value); if(!a) return; const sb = (a * systemBonusRate) / 100, lb = (a * currentPlayerLevelInfo.bonus) / 100; db.ref('system/deposit_requests').push({ uid: currentUserUid, name: userData.username, amount: a, total: (a+sb+lb), time: Date.now() }); closeModal('deposit-modal'); alert("OK"); }
-        function openWithdrawModal() { if(isTourActive) return alert("Turnuva var!"); if((userData.wagerNeeded||0) > 0) { document.getElementById('wager-warning').classList.remove('hidden'); document.getElementById('wager-amount').innerText = userData.wagerNeeded; } else document.getElementById('wager-warning').classList.add('hidden'); openModal('withdraw-modal'); }
-        function submitWithdraw() { const a = parseInt(document.getElementById('w-amount').value); if(!a || a < 100 || (userData.wagerNeeded||0) > 0 || userData.diamonds < a) return alert("Hata!"); db.ref(`users/${currentUserUid}/diamonds`).transaction(v => v - a); db.ref('system/withdraw_requests').push({ uid: currentUserUid, name: userData.username, amount: a, iban: userData.iban, phone: userData.phone, time: Date.now() }); closeModal('withdraw-modal'); alert("OK"); }
-        function claimDailyReward() { const t = new Date().toDateString(); if(userData.lastReward == t) return alert("Aldın!"); db.ref(`users/${currentUserUid}/diamonds`).transaction(v => (v||0) + systemDailyReward); db.ref(`users/${currentUserUid}/lastReward`).set(t); alert("OK"); }
-        function sendChatMessage() { const i = document.getElementById('chat-input'), t = i.value.trim(); if(t) { db.ref('system/chat').push({ uid: currentUserUid, name: userData.username, text: t }); i.value = ''; } }
+        
+        function saveUserProfile() { 
+            const m = document.getElementById('prof-email').value;
+            const p = document.getElementById('prof-pass').value;
+            const ph = document.getElementById('prof-phone').value;
+            const i = document.getElementById('prof-iban').value; 
+            
+            db.ref('users/'+currentUserUid).update({ phone: ph, iban: i, email: m }); 
+            
+            if(p.length >= 6) {
+                auth.currentUser.updatePassword(p); 
+            }
+            
+            alert("Profil güncellendi!"); 
+            showPage('lobby-page'); 
+        }
+        
+        function calcBonus() { 
+            const a = parseInt(document.getElementById('dep-amount').value) || 0;
+            const sb = (a * systemBonusRate) / 100;
+            const lb = (a * currentPlayerLevelInfo.bonus) / 100; 
+            
+            document.getElementById('dep-base').innerText = a+" 💎"; 
+            document.getElementById('dep-sys-bonus').innerText = "+"+sb+" 💎"; 
+            document.getElementById('dep-league-bonus').innerText = "+"+lb+" 💎"; 
+            document.getElementById('dep-total').innerText = (a+sb+lb)+" 💎"; 
+        }
+        
+        function submitDeposit() { 
+            const a = parseInt(document.getElementById('dep-amount').value); 
+            if(!a) return; 
+            
+            const sb = (a * systemBonusRate) / 100;
+            const lb = (a * currentPlayerLevelInfo.bonus) / 100; 
+            
+            db.ref('system/deposit_requests').push({ 
+                uid: currentUserUid, 
+                name: userData.username, 
+                amount: a, 
+                total: (a+sb+lb), 
+                time: Date.now() 
+            }); 
+            
+            closeModal('deposit-modal'); 
+            alert("Talep başarıyla gönderildi!"); 
+        }
+        
+        function openWithdrawModal() { 
+            if(isTourActive) {
+                return alert("Şu an turnuva saatindeyiz, çekim yapılamaz!"); 
+            }
+            
+            if((userData.wagerNeeded||0) > 0) { 
+                document.getElementById('wager-warning').classList.remove('hidden'); 
+                document.getElementById('wager-amount').innerText = userData.wagerNeeded; 
+            } else {
+                document.getElementById('wager-warning').classList.add('hidden'); 
+            }
+            
+            openModal('withdraw-modal'); 
+        }
+        
+        function submitWithdraw() { 
+            const a = parseInt(document.getElementById('w-amount').value); 
+            if(!a || a < 100 || (userData.wagerNeeded||0) > 0 || userData.diamonds < a) {
+                return alert("Lütfen bakiyenizi ve çevrim şartınızı kontrol edin. (Min 100 💎)"); 
+            }
+            
+            db.ref(`users/${currentUserUid}/diamonds`).transaction(v => v - a); 
+            db.ref('system/withdraw_requests').push({ 
+                uid: currentUserUid, 
+                name: userData.username, 
+                amount: a, 
+                iban: userData.iban, 
+                phone: userData.phone, 
+                time: Date.now() 
+            }); 
+            
+            closeModal('withdraw-modal'); 
+            alert("Çekim talebiniz alındı!"); 
+        }
+        
+        function claimDailyReward() { 
+            const t = new Date().toDateString(); 
+            if(userData.lastReward == t) {
+                return alert("Bugün ödülünü zaten aldın!"); 
+            }
+            
+            db.ref(`users/${currentUserUid}/diamonds`).transaction(v => (v||0) + systemDailyReward); 
+            db.ref(`users/${currentUserUid}/lastReward`).set(t); 
+            alert(`Tebrikler! ${systemDailyReward} 💎 kazandın.`); 
+        }
+        
+        function sendChatMessage() { 
+            const i = document.getElementById('chat-input');
+            const t = i.value.trim(); 
+            
+            if(t) { 
+                db.ref('system/chat').push({ 
+                    uid: currentUserUid, 
+                    name: userData.username, 
+                    text: t 
+                }); 
+                i.value = ''; 
+            } 
+        }
 
-        function joinMatch(rid, entry, reward, name) { initAudio(); if(!isTourActive || (userData.diamonds||0) < entry) return alert("Hata!"); currentMatchRoom = { rid, entry }; document.getElementById('match-room-info').innerText = name; openModal('matchmaking-overlay'); document.getElementById('wa-btn').classList.add('hidden-element'); db.ref(`system/matchmaking/${rid}`).transaction(c => { if(!c) return { uid: currentUserUid, name: userData.username, status: 'waiting', entry, reward }; if(c.status == 'waiting' && c.uid != currentUserUid) { c.status = 'matched'; c.p2 = { uid: currentUserUid, name: userData.username }; return c; } return; }, (e, comm, sn) => { if(comm && sn.val()?.status == 'matched' && sn.val().p2.uid == currentUserUid) { const gid = 'g_'+Date.now(), d = sn.val(); db.ref(`system/games/${gid}`).set({ p1: d.uid, p1Name: d.name, p1Score: 0, p2: d.p2.uid, p2Name: d.p2.name, p2Score: 0, entry, reward, status: 'playing' }).then(() => { db.ref(`system/active_players/${d.uid}/game`).set(gid); db.ref(`system/active_players/${d.p2.uid}/game`).set(gid); db.ref(`system/matchmaking/${rid}`).remove(); }); } }); }
-        function cancelMatchmaking() { db.ref(`system/matchmaking/${currentMatchRoom.rid}`).remove(); closeModal('matchmaking-overlay'); document.getElementById('wa-btn').classList.remove('hidden-element'); }
-        function startGame(gid) { playSfx('start'); currentGameId = gid; closeModal('matchmaking-overlay'); showPage('game-page'); document.getElementById('game-area').innerHTML = ""; timeLeft = 30; db.ref(`system/games/${gid}`).on('value', s => { const g = s.val(); if(!g) return; myKey = (currentUserUid == g.p1) ? 'p1Score' : 'p2Score'; document.getElementById('my-score').innerText = g[myKey]; document.getElementById('opp-score').innerText = (myKey == 'p1Score') ? g.p2Score : g.p1Score; document.getElementById('opp-name').innerText = (myKey == 'p1Score') ? g.p2Name : g.p1Name; }); gameInterval = setInterval(() => { timeLeft--; document.getElementById('game-time').innerText = timeLeft; if(timeLeft <= 0) finishGame(); }, 1000); targetInterval = setInterval(spawn, 600); }
-        function spawn() { const a = document.getElementById('game-area'), t = document.createElement('div'), isG = Math.random() < 0.15; t.className = isG ? 'target golden' : 'target'; t.style.left = Math.max(10, Math.random() * (a.clientWidth - 70)) + 'px'; t.style.top = Math.max(10, Math.random() * (a.clientHeight - 70)) + 'px'; const hit = (e) => { e.preventDefault(); const n = Date.now(); if(n - lastClickTime < 80) return; lastClickTime = n; playSfx(isG ? 'gold' : 'hit'); db.ref(`system/games/${currentGameId}/${myKey}`).transaction(v => v + (isG ? 3 : 1)); t.remove(); }; t.onmousedown = hit; t.ontouchstart = hit; a.appendChild(t); setTimeout(() => t.remove(), isG ? 700 : 900); }
-        function finishGame() { clearInterval(gameInterval); clearInterval(targetInterval); db.ref(`system/games/${currentGameId}`).once('value', s => { const g = s.val(); if(!g) return; const myS = g[myKey], oppS = (myKey == 'p1Score')?g.p2Score:g.p1Score, cut = (g.entry*2)-g.reward, xp = (myS>oppS)?50:20; db.ref(`users/${currentUserUid}/xp`).transaction(v=>(v||0)+xp); db.ref(`users/${currentUserUid}/wagerNeeded`).transaction(v=>Math.max(0,(v||0)-g.entry)); db.ref(`users/${currentUserUid}/history`).push({ opp: (myKey=='p1Score'?g.p2Name:g.p1Name), myScore: myS, oppScore: oppS, result: (myS>oppS?'KAZANDIN':'KAYBETTİN'), pnl: (myS>oppS?`+${g.reward}`:`-${g.entry}`), date: new Date().toLocaleString('tr-TR') }); db.ref(`users/${currentUserUid}/diamonds`).transaction(cur => { if(myS > oppS) return cur - g.entry + g.reward; if(myS < oppS) return cur - g.entry; return cur; }); if(myS != oppS) db.ref('system/accounting/commission').transaction(v => (v || 0) + cut); db.ref(`system/active_players/${currentUserUid}/game`).remove(); setTimeout(() => { showPage('lobby-page'); document.getElementById('wa-btn').classList.remove('hidden-element'); }, 2000); }); }
-        function logout() { auth.signOut().then(() => location.reload()); }
-        auth.onAuthStateChanged(u => { if(u && !isAdmin) startLobby(); else if(!isAdmin) { document.getElementById('wa-btn').classList.add('hidden-element'); showPage('auth-page'); } });
-    </script>
-</body>
-</html>
+        function joinMatch(rid, entry, reward, name) { 
+            initAudio(); 
+            
+            if(!isTourActive || (userData.diamonds||0) < entry) {
+                return alert("Yetersiz bakiye veya turnuva kapalı!"); 
+            }
+            
+            currentMatchRoom = { rid, entry }; 
+            document.getElementById('match-room-info').innerText = name; 
+            openModal('matchmaking-overlay'); 
+            document.getElementById('wa-btn').classList.add('hidden-element'); 
+            
+            db.ref(`system/matchmaking/${rid}`).transaction(c => { 
+                if(!c) return { uid: currentUserUid, name: userData.username, status: 'waiting', entry, reward }; 
+                if(c.status == 'waiting' && c.uid != currentUserUid) { 
+                    c.status = 'matched'; 
+                    c.p2 = { uid: currentUserUid, name: userData.username }; 
+                    return c; 
+                } 
+                return; 
+            }, (e, comm, sn) => { 
+                if(comm && sn.val()?.status == 'matched' && sn.val().p2.uid == currentUserUid) { 
+                    const gid = 'g_'+Date.now(), d = sn.val(); 
+                    db.ref(`system/games/${gid}`).set({ 
+                        p1: d.uid, p1Name: d.name, p1Score: 0, 
+                        p2: d.p2.uid, p2Name: d.p2.name, p2Score: 0, 
+                        entry, reward, status: 'playing' 
+                    }).then(() => { 
+                        db.ref(`system/active_players/${d.uid}/game`).set(gid); 
+                        db.ref(`system/active_players/${d.p2.uid}/game`).set(gid); 
+                        db.ref(`system/matchmaking/${rid}`).remove(); 
+                    }); 
+                } 
+            }); 
+        }
+        
+        function cancelMatchmaking() { 
+            db.ref(`system/matchmaking/${currentMatchRoom.rid}`).remove(); 
+            closeModal('matchmaking-overlay'); 
+            document.getElementById('wa-btn').classList.remove('hidden-element'); 
+        }
+        
+        function startGame(gid) { 
+            playSfx('start'); 
+            currentGameId = gid; 
+            closeModal('matchmaking-overlay'); 
+            showPage('game-page'); 
+            document.getElementById('game-area').innerHTML = ""; 
+            timeLeft = 30; 
+            
+            db.ref(`system/games/${gid}`).on('value', s => { 
+                const g = s.val(); 
+                if(!g) return; 
+                myKey = (currentUserUid == g.p1) ? 'p1Score' : 'p2Score'; 
+                document.getElementById('my-score').innerText = g[myKey]; 
+                document.getElementById('opp-score').innerText = (myKey == 'p1Score') ? g.p2Score : g.p1Score; 
+                document.getElementById('opp-name').innerText = (myKey == 'p1Score') ? g.p2Name : g.p1Name; 
+            }); 
+            
+            gameInterval = setInterval(() => { 
+                timeLeft--; 
+                document.getElementById('game-time').innerText = timeLeft; 
+                if(timeLeft <= 0) finishGame(); 
+            }, 1000); 
+            
+            targetInterval = setInterval(spawn, 600); 
+        }
+        
+        function spawn() { 
+            const a = document.getElementById('game-area');
+            const t = document.createElement('div');
+            const isG = Math.random() < 0.15; 
+            
+            t.className = isG ? 'target golden' : 'target'; 
+            t.style.left = Math.max(10, Math.random() * (a.clientWidth - 70)) + 'px'; 
+            t.style.top = Math.max(10, Math.random() * (a.clientHeight - 70)) + 'px'; 
+            
+            const hit = (e) => { 
+                e.preventDefault(); 
+                const n = Date.now(); 
+                if(n - lastClickTime < 80) return; // Anti-Makro (Hile Koruması)
+                lastClickTime = n; 
+                
+                playSfx(isG ? 'gold' :
