@@ -6,11 +6,9 @@
     <title>ARENA V14 | OWNER ULTIMATE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; overflow: hidden; user-select: none; }
@@ -18,141 +16,73 @@
         .page { position: fixed; inset: 0; padding: 1rem; overflow-y: auto; z-index: 10; padding-bottom: 80px; background: radial-gradient(circle at top, #0f172a 0%, #020617 100%); }
         .hidden { display: none !important; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); }
-        .stat-card { background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)); border-radius: 24px; padding: 1.25rem; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; }
-        .owner-border { border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: 0 0 20px rgba(139, 92, 246, 0.1); }
-        .input-field { width: 100%; background: rgba(0, 0, 0, 0.4); padding: 0.9rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1); outline: none; color: white; font-size: 0.8rem; }
-        
-        /* Matchmaking ve Oyun Alanı */
+        .stat-card { background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)); border-radius: 24px; padding: 1.25rem; border: 1px solid rgba(255,255,255,0.05); }
         #game-area { position: relative; width: 100%; height: 50vh; background: rgba(0,0,0,0.6); border-radius: 30px; border: 2px solid #1e293b; overflow: hidden; }
         .target { position: absolute; width: 65px; height: 65px; background: radial-gradient(circle, #60a5fa, #2563eb); border: 4px solid #fff; border-radius: 50%; box-shadow: 0 0 25px #3b82f6; transform: scale(0); animation: pop 0.2s forwards; }
         @keyframes pop { to { transform: scale(1); } }
-        
-        /* Duyuru Bandı */
         .marquee { white-space: nowrap; overflow: hidden; background: rgba(139, 92, 246, 0.2); padding: 5px; font-size: 10px; font-weight: bold; color: #a78bfa; border-radius: 10px; margin-bottom: 15px; }
         .marquee p { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+        .input-field { width: 100%; background: rgba(0, 0, 0, 0.4); padding: 0.9rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1); outline: none; color: white; }
     </style>
 </head>
 <body>
+    <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] w-11/12 max-w-sm"></div>
 
-    <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] w-11/12 max-w-sm pointer-events-none"></div>
-
-    <div id="admin-page" class="page hidden">
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <h1 class="text-2xl font-black font-orbit text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">OWNER CENTER</h1>
-                <p class="text-[9px] text-slate-500 font-bold tracking-widest">SİSTEM TAM YETKİLİ KONTROL</p>
-            </div>
-            <button onclick="logout()" class="w-10 h-10 glass rounded-full flex items-center justify-center text-red-500"><i class="fa-solid fa-power-off"></i></button>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="stat-card owner-border">
-                <i class="fa-solid fa-vault text-purple-500 absolute -right-2 -top-2 text-4xl opacity-10"></i>
-                <p class="text-[9px] text-slate-400 font-bold uppercase">NET SİSTEM KÂRI</p>
-                <h3 id="admin-sys-commission" class="text-xl font-black font-orbitron text-purple-400">0 ₺</h3>
-            </div>
-            <div class="stat-card border-blue-500/20">
-                <p class="text-[9px] text-slate-400 font-bold uppercase">AKTİF OYUNCU</p>
-                <h3 id="admin-total-users" class="text-xl font-black font-orbitron text-blue-400">0</h3>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div class="stat-card bg-red-500/5 border-red-500/20">
-                <h3 class="text-xs font-bold text-red-400 mb-3"><i class="fa-solid fa-gears mr-2"></i> KRİTİK SİSTEM AYARLARI</h3>
-                <div class="flex gap-2 mb-3">
-                    <button id="btn-maintenance" onclick="toggleMaintenance()" class="flex-1 bg-slate-800 py-3 rounded-xl text-[10px] font-bold">BAKIM MODU: KAPALI</button>
-                </div>
-                <div class="flex gap-2">
-                    <input id="admin-announcement" placeholder="Kayan duyuru yazısı..." class="input-field text-[10px]">
-                    <button onclick="updateAnnouncement()" class="bg-purple-600 px-4 rounded-xl text-[10px] font-bold">YAYINLA</button>
-                </div>
-            </div>
-
-            <div class="stat-card border-orange-500/30">
-                <h3 class="text-xs font-bold text-orange-400 mb-3"><i class="fa-solid fa-hand-holding-dollar mr-2"></i> BEKLEYEN ÖDEMELER</h3>
-                <div id="admin-withdraw-list" class="space-y-2"></div>
-            </div>
-
-            <div class="stat-card border-blue-500/30">
-                <h3 class="text-xs font-bold text-blue-400 mb-3"><i class="fa-solid fa-users-gear mr-2"></i> OYUNCU ÜST KONTROL</h3>
-                <div id="admin-users-cards" class="space-y-3"></div>
-            </div>
-
-            <div class="stat-card border-emerald-500/30">
-                <h3 class="text-xs font-bold text-emerald-400 mb-3"><i class="fa-solid fa-gamepad mr-2"></i> ARENA ODA KURULUMU</h3>
-                <div class="space-y-2">
-                    <input id="new-room-name" placeholder="Oda İsmi (Örn: ELİTE 5K)" class="input-field">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input id="new-room-entry" type="number" placeholder="Giriş ₺" class="input-field">
-                        <input id="new-room-reward" type="number" placeholder="Ödül ₺" class="input-field">
-                    </div>
-                    <button onclick="adminCreateRoom()" class="w-full bg-emerald-600 py-3 rounded-2xl font-bold text-xs">ODAYI CANLIYA AL</button>
-                </div>
-            </div>
+    <div id="auth-page" class="page flex flex-col justify-center items-center">
+        <h1 class="text-4xl font-black font-orbitron text-blue-500 mb-8">ARENA V14</h1>
+        <div class="glass p-6 rounded-3xl w-full max-w-xs">
+            <input id="l-user" placeholder="Kullanıcı Adı" class="input-field mb-2">
+            <input id="l-pass" type="password" placeholder="Şifre" class="input-field mb-4">
+            <button onclick="handleLogin()" class="w-full bg-blue-600 py-3 rounded-xl font-bold mb-2">GİRİŞ</button>
+            <button onclick="handleRegister()" class="w-full border border-blue-500 text-blue-500 py-3 rounded-xl font-bold">KAYIT</button>
         </div>
     </div>
 
-    <div id="lobby-page" class="page hidden">
-        <div class="marquee" id="marquee-container"><p id="marquee-text">Arena V14 Elite System'e Hoşgeldiniz!</p></div>
-        
+    <div id="admin-page" class="page hidden">
         <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center font-black shadow-lg shadow-blue-500/20">A</div>
-                <div>
-                    <h2 id="display-name" class="font-bold text-sm tracking-tight">...</h2>
-                    <p class="text-[9px] text-slate-500 font-bold uppercase">V14 LİSANS: AKTİF</p>
-                </div>
+            <h1 class="text-xl font-black font-orbitron text-purple-500">OWNER CENTER</h1>
+            <button onclick="logout()" class="text-red-500"><i class="fa-solid fa-power-off"></i></button>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="stat-card border-l-4 border-purple-500">
+                <p class="text-[9px] text-slate-400 font-bold uppercase">SİSTEM KÂRI</p>
+                <h3 id="admin-sys-commission" class="text-lg font-black font-orbitron">0 ₺</h3>
             </div>
-            <button onclick="logout()" class="text-slate-500 bg-slate-800/50 w-10 h-10 rounded-xl flex items-center justify-center"><i class="fa-solid fa-power-off"></i></button>
+            <div class="stat-card border-l-4 border-blue-500">
+                <p class="text-[9px] text-slate-400 font-bold uppercase">OYUNCU</p>
+                <h3 id="admin-total-users" class="text-lg font-black font-orbitron">0</h3>
+            </div>
         </div>
-
-        <div class="stat-card mb-6 border-b-4 border-cyan-500 bg-cyan-500/5 py-10 text-center">
-            <p class="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-2">Mevcut Bakiyeniz</p>
-            <h1 id="user-diamonds" class="text-5xl font-black font-orbitron text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">0 ₺</h1>
+        <div class="stat-card bg-red-500/5 border-red-500/20 mb-4">
+            <button id="btn-maintenance" onclick="toggleMaintenance()" class="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-bold">BAKIM MODU: KAPALI</button>
+            <input id="admin-announcement" placeholder="Duyuru yaz..." class="input-field mt-2 text-[10px]">
+            <button onclick="updateAnnouncement()" class="w-full bg-purple-600 py-2 rounded-xl mt-2 text-[10px] font-bold">YAYINLA</button>
         </div>
+        <div id="admin-withdraw-list" class="space-y-2 mb-4"></div>
+        <div id="admin-users-cards" class="space-y-3"></div>
+    </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <button onclick="showWithdrawModal()" class="stat-card flex flex-col items-center gap-2 bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10 transition-all">
-                <i class="fa-solid fa-receipt text-emerald-500 text-2xl"></i>
-                <span class="text-[10px] font-black uppercase">PARA ÇEK</span>
-            </button>
-            <button onclick="showPage('store-page')" class="stat-card flex flex-col items-center gap-2 bg-blue-500/5 border-blue-500/20 hover:bg-blue-500/10 transition-all">
-                <i class="fa-solid fa-piggy-bank text-blue-500 text-2xl"></i>
-                <span class="text-[10px] font-black uppercase">KASA YÜKLE</span>
-            </button>
+    <div id="lobby-page" class="page hidden">
+        <div class="marquee"><p id="marquee-text">Arena V14 Hoşgeldiniz!</p></div>
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="display-name" class="font-bold text-sm uppercase">...</h2>
+            <button onclick="logout()" class="text-slate-500"><i class="fa-solid fa-power-off"></i></button>
         </div>
-
-        <h3 class="text-slate-500 font-black text-[10px] mb-4 uppercase tracking-[0.3em] flex items-center gap-2">
-            <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span> CANLI ARENALAR
-        </h3>
+        <div class="stat-card mb-6 border-b-4 border-cyan-500 text-center py-8">
+            <p class="text-[10px] text-slate-400 font-black mb-1">BAKİYE</p>
+            <h1 id="user-diamonds" class="text-4xl font-black font-orbitron text-cyan-400">0 ₺</h1>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <button onclick="showWithdrawModal()" class="stat-card bg-emerald-500/5 text-center"><i class="fa-solid fa-receipt text-emerald-500"></i><p class="text-[10px] font-bold">PARA ÇEK</p></button>
+            <button onclick="showPage('store-page')" class="stat-card bg-blue-500/5 text-center"><i class="fa-solid fa-piggy-bank text-blue-500"></i><p class="text-[10px] font-bold">KASA YÜKLE</p></button>
+        </div>
         <div id="rooms-list" class="space-y-4"></div>
     </div>
 
     <div id="maintenance-page" class="page hidden flex flex-col justify-center items-center text-center">
-        <i class="fa-solid fa-wrench text-6xl text-orange-500 mb-6 animate-bounce"></i>
-        <h1 class="text-3xl font-black font-orbitron mb-2">SİSTEM BAKIMDA</h1>
-        <p class="text-slate-400 text-sm max-w-xs">Şu an size daha iyi bir deneyim sunmak için güncellemeler yapıyoruz. Kısa süre sonra tekrar buradayız!</p>
-    </div>
-
-    <div id="game-page" class="page hidden">
-        <div class="flex justify-between items-center mb-4 glass p-4 rounded-3xl border-white/5">
-            <div class="text-center"><p class="text-[8px] font-bold text-blue-400">BEN</p><span id="my-score" class="text-3xl font-black">0</span></div>
-            <div class="text-center"><p class="text-[8px] font-bold text-red-500">SÜRE</p><span id="game-time" class="text-2xl font-orbitron text-white">30</span></div>
-            <div class="text-center"><p id="opp-name" class="text-[8px] font-bold text-red-400">RAKİP</p><span id="opp-score" class="text-3xl font-black">0</span></div>
-        </div>
-        <div id="game-area"></div>
-    </div>
-
-    <div id="matchmaking-overlay" class="fixed inset-0 bg-black/95 z-[500] hidden flex flex-col justify-center items-center p-10 text-center">
-        <div class="relative w-24 h-24 mb-8">
-            <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-        <h2 class="text-2xl font-black font-orbitron mb-2 tracking-widest text-white">RAKİP ARANIYOR</h2>
-        <p id="match-room-info" class="text-blue-400 text-xs font-bold mb-10 uppercase tracking-widest">...</p>
-        <button onclick="cancelMatchmaking()" class="bg-red-600/20 text-red-500 border border-red-500/30 px-10 py-4 rounded-2xl font-black text-xs uppercase transition-all active:scale-95">İPTAL ET</button>
+        <i class="fa-solid fa-wrench text-5xl text-orange-500 mb-4"></i>
+        <h1 class="text-2xl font-black font-orbitron">BAKIM VAR</h1>
     </div>
 
     <script>
@@ -167,270 +97,60 @@
         };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(); const db = firebase.database();
-
         let currentUserUid = null, userData = {}, isAdmin = false, isMaintenance = false;
-        let gameInterval, targetInterval, timeLeft = 30, currentGameId = null, myKey = null, currentMatchRoom = null;
 
-        function showToast(m, t='info') {
-            const container = document.getElementById('toast-container');
-            const el = document.createElement('div');
-            el.className = `toast glass border-l-4 ${t === 'error' ? 'border-red-500 bg-red-500/20' : 'border-blue-500 bg-blue-500/20'}`;
-            el.innerHTML = `<span class="text-xs font-bold">${m}</span>`;
-            container.appendChild(el);
-            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 3000);
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
         }
 
-        // --- SUPER ADMIN (OWNER) FUNCTIONS ---
-        function startAdmin() {
-            showPage('admin-page');
-            // Finansal Veriler
-            db.ref('system/accounting/commission').on('value', s => document.getElementById('admin-sys-commission').innerText = (s.val() || 0).toLocaleString() + " ₺");
-            
-            // Kullanıcı Kartları ve BAN Sistemi
-            db.ref('users').on('value', s => {
-                document.getElementById('admin-total-users').innerText = s.numChildren();
-                let h = '';
-                s.forEach(c => {
-                    const u = c.val();
-                    const isBanned = u.status === 'banned';
-                    h += `
-                    <div class="stat-card flex flex-col gap-3 ${isBanned ? 'opacity-50 grayscale' : ''}">
-                        <div class="flex justify-between items-center">
-                            <span class="font-black text-xs uppercase">${u.username} ${isBanned ? '<span class="text-red-500 text-[8px]">[BANLI]</span>' : ''}</span>
-                            <span class="text-cyan-400 font-black text-xs">${u.diamonds.toLocaleString()} ₺</span>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="db.ref('users/${c.key}/diamonds').transaction(v=>(v||0)+1000)" class="flex-1 bg-green-600/20 text-green-500 py-2 rounded-xl text-[9px] font-bold">+1K</button>
-                            <button onclick="db.ref('users/${c.key}/diamonds').transaction(v=>(v||0)-1000)" class="flex-1 bg-red-600/20 text-red-500 py-2 rounded-xl text-[9px] font-bold">-1K</button>
-                            <button onclick="toggleBanUser('${c.key}', ${isBanned})" class="flex-1 bg-slate-800 py-2 rounded-xl text-[9px] font-bold">${isBanned ? 'AÇ' : 'BANLA'}</button>
-                        </div>
-                    </div>`;
-                });
-                document.getElementById('admin-users-cards').innerHTML = h;
-            });
-
-            // Bakım Modu Durumu
-            db.ref('system/config/maintenance').on('value', s => {
-                isMaintenance = s.val() || false;
-                const btn = document.getElementById('btn-maintenance');
-                btn.innerText = `BAKIM MODU: ${isMaintenance ? 'AÇIK 🛠' : 'KAPALI ✅'}`;
-                btn.className = `flex-1 py-3 rounded-xl text-[10px] font-bold ${isMaintenance ? 'bg-orange-600 text-white' : 'bg-slate-800 text-slate-400'}`;
-            });
-
-            // Para Çekme Talepleri
-            db.ref('system/withdraw_requests').on('value', s => {
-                let h = '';
-                s.forEach(c => {
-                    const r = c.val();
-                    h += `
-                    <div class="stat-card border-l-4 border-orange-500 bg-orange-500/5">
-                        <div class="flex justify-between items-start">
-                            <p class="text-[10px] font-black text-white">${r.name.toUpperCase()}</p>
-                            <p class="text-orange-400 font-black text-xs">${r.amount} ₺</p>
-                        </div>
-                        <p class="text-[8px] font-mono text-slate-400 my-2 select-all">${r.iban}</p>
-                        <button onclick="adminApproveWithdraw('${c.key}')" class="w-full bg-orange-600 py-2 rounded-xl text-[9px] font-black">ÖDEME YAPILDI</button>
-                    </div>`;
-                });
-                document.getElementById('admin-withdraw-list').innerHTML = h || '<p class="text-[10px] text-slate-600 text-center">Talep yok.</p>';
-            });
-        }
-
-        function toggleMaintenance() { db.ref('system/config/maintenance').set(!isMaintenance); }
-        function updateAnnouncement() { 
-            const msg = document.getElementById('admin-announcement').value;
-            if(msg) db.ref('system/config/announcement').set(msg).then(() => {
-                showToast("Duyuru Güncellendi!");
-                document.getElementById('admin-announcement').value = '';
-            });
-        }
-        function toggleBanUser(uid, currentlyBanned) { db.ref('users/' + uid).update({ status: currentlyBanned ? 'active' : 'banned' }); }
-        function adminApproveWithdraw(rid) { db.ref('system/withdraw_requests/' + rid).remove().then(() => showToast("Ödeme Onaylandı.")); }
-        function adminCreateRoom() {
-            const n = document.getElementById('new-room-name').value;
-            const e = parseInt(document.getElementById('new-room-entry').value);
-            const r = parseInt(document.getElementById('new-room-reward').value);
-            if(n && e && r) {
-                db.ref('system/rooms').push({ name: n, entryFee: e, reward: r }).then(() => showToast("Oda Canlıda!"));
-            }
-        }
-
-        // --- LOBBY & PLAYER FUNCTIONS ---
-        function startLobby() {
-            currentUserUid = auth.currentUser.uid;
-            
-            // BAN KONTROLÜ
-            db.ref('users/' + currentUserUid).on('value', s => {
-                userData = s.val();
-                if(userData.status === 'banned') {
-                    alert("HESABINIZ SİSTEMDEN YASAKLANMIŞTIR!");
-                    logout();
-                    return;
-                }
-                document.getElementById('display-name').innerText = userData.username;
-                document.getElementById('user-diamonds').innerText = userData.diamonds.toLocaleString() + " ₺";
-            });
-
-            // BAKIM MODU VE DUYURU DİNLEYİCİ
-            db.ref('system/config').on('value', s => {
-                const conf = s.val();
-                if(conf.maintenance && !isAdmin) { showPage('maintenance-page'); }
-                else if(!isAdmin) { showPage('lobby-page'); }
-                document.getElementById('marquee-text').innerText = conf.announcement || "Arena V14 Hoşgeldiniz!";
-            });
-
-            // ODA LİSTESİ
-            db.ref('system/rooms').on('value', s => {
-                let h = '';
-                s.forEach(c => {
-                    const r = c.val();
-                    h += `
-                    <div onclick="joinMatch('${c.key}', ${r.entryFee}, ${r.reward}, '${r.name}')" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 transition-all">
-                        <div>
-                            <p class="font-black text-xs uppercase tracking-tight">${r.name}</p>
-                            <p class="text-[9px] text-slate-500 font-bold">Giriş: ${r.entryFee} ₺ | Kazanç: ${r.reward} ₺</p>
-                        </div>
-                        <i class="fa-solid fa-bolt-lightning text-blue-500"></i>
-                    </div>`;
-                });
-                document.getElementById('rooms-list').innerHTML = h;
-            });
-
-            db.ref(`system/active_players/${currentUserUid}/game`).on('value', s => { if(s.val()) startGame(s.val()); });
-        }
-
-        // --- MATCHMAKING & OYUN MANTIĞI (Öncekiyle aynı ama stabilize edilmiş) ---
-        function joinMatch(rid, entry, reward, name) {
-            if(isMaintenance) return showToast("Sistem bakımda, şu an odaya girilemez.", "error");
-            if(userData.diamonds < entry) return showToast("Bakiye Yetersiz!", "error");
-            currentMatchRoom = { rid, entry };
-            document.getElementById('match-room-info').innerText = name;
-            document.getElementById('matchmaking-overlay').classList.remove('hidden');
-
-            db.ref(`system/matchmaking/${rid}`).transaction(cur => {
-                if(!cur) return { uid: currentUserUid, name: userData.username, status: 'waiting', entry, reward };
-                if(cur.status === 'waiting' && cur.uid !== currentUserUid) {
-                    cur.status = 'matched'; cur.p2 = { uid: currentUserUid, name: userData.username };
-                    return cur;
-                }
-                return;
-            }, (err, comm, snap) => {
-                if(comm && snap.val()?.status === 'matched' && snap.val().p2.uid === currentUserUid) {
-                    const gid = 'g_'+Date.now();
-                    const d = snap.val();
-                    db.ref(`system/games/${gid}`).set({
-                        p1: d.uid, p1Name: d.name, p1Score: 0,
-                        p2: d.p2.uid, p2Name: d.p2.name, p2Score: 0,
-                        entry, reward, status: 'playing'
-                    }).then(() => {
-                        db.ref(`system/active_players/${d.uid}/game`).set(gid);
-                        db.ref(`system/active_players/${d.p2.uid}/game`).set(gid);
-                        db.ref(`system/matchmaking/${rid}`).remove();
-                    });
-                }
-            });
-        }
-
-        function cancelMatchmaking() {
-            db.ref(`system/matchmaking/${currentMatchRoom.rid}`).remove();
-            document.getElementById('matchmaking-overlay').classList.add('hidden');
-        }
-
-        function startGame(gid) {
-            currentGameId = gid;
-            document.getElementById('matchmaking-overlay').classList.add('hidden');
-            showPage('game-page');
-            document.getElementById('game-area').innerHTML = "";
-            timeLeft = 30;
-            
-            db.ref(`system/games/${gid}`).on('value', s => {
-                const g = s.val(); if(!g) return;
-                myKey = (currentUserUid === g.p1) ? 'p1Score' : 'p2Score';
-                document.getElementById('my-score').innerText = g[myKey];
-                document.getElementById('opp-score').innerText = (myKey === 'p1Score') ? g.p2Score : g.p1Score;
-                document.getElementById('opp-name').innerText = (myKey === 'p1Score') ? g.p2Name : g.p1Name;
-            });
-
-            gameInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('game-time').innerText = timeLeft;
-                if(timeLeft <= 0) finishGame();
-            }, 1000);
-            spawn();
-            targetInterval = setInterval(spawn, 650);
-        }
-
-        function spawn() {
-            const a = document.getElementById('game-area');
-            const t = document.createElement('div');
-            t.className = 'target';
-            t.style.left = Math.random() * (a.clientWidth - 70) + 'px';
-            t.style.top = Math.random() * (a.clientHeight - 70) + 'px';
-            t.onmousedown = () => {
-                db.ref(`system/games/${currentGameId}/${myKey}`).transaction(v => (v || 0) + 1);
-                t.remove();
-            };
-            a.appendChild(t);
-            setTimeout(() => t.remove(), 1000);
-        }
-
-        function finishGame() {
-            clearInterval(gameInterval); clearInterval(targetInterval);
-            db.ref(`system/games/${currentGameId}`).once('value', s => {
-                const g = s.val(); if(!g) return;
-                const myS = g[myKey], oppS = (myKey === 'p1Score') ? g.p2Score : g.p1Score;
-                const cut = (g.entry * 2) - g.reward;
-
-                db.ref(`users/${currentUserUid}/diamonds`).transaction(cur => {
-                    if(myS > oppS) return (cur || 0) - g.entry + g.reward;
-                    if(myS < oppS) return (cur || 0) - g.entry;
-                    return cur;
-                });
-
-                if(myS > oppS) {
-                    showToast("KAZANDIN!");
-                    db.ref('system/accounting/commission').transaction(v => (v || 0) + cut);
-                } else if(myS < oppS) {
-                    showToast("KAYBETTİN!", "error");
-                    db.ref('system/accounting/commission').transaction(v => (v || 0) + cut);
-                } else {
-                    db.ref(`users/${currentUserUid}/diamonds`).transaction(cur => (cur || 0) + g.entry);
-                    showToast("BERABERE!");
-                }
-                db.ref(`system/active_players/${currentUserUid}/game`).remove();
-                setTimeout(() => showPage('lobby-page'), 2500);
-            });
-        }
-
-        // --- AUTH & OTHER ---
         function handleLogin() {
             const u = document.getElementById('l-user').value.trim().toLowerCase();
             const p = document.getElementById('l-pass').value;
             if(u === "admin" && p === "123456") { isAdmin = true; startAdmin(); return; }
-            auth.signInWithEmailAndPassword(u + "@a.v14", p).then(() => startLobby()).catch(() => showToast("Hatalı Giriş!", "error"));
+            auth.signInWithEmailAndPassword(u + "@a.v14", p).then(() => startLobby()).catch(() => alert("Hata!"));
         }
+
         function handleRegister() {
             const u = document.getElementById('l-user').value.trim().toLowerCase();
             const p = document.getElementById('l-pass').value;
-            if(u === "admin") return;
             auth.createUserWithEmailAndPassword(u + "@a.v14", p).then(r => {
                 db.ref('users/' + r.user.uid).set({ username: u, diamonds: 1000, wins: 0, losses: 0, status: 'active' });
-                showToast("Kayıt Başarılı!");
-            }).catch(e => showToast(e.message, "error"));
+            });
         }
+
+        function startAdmin() {
+            showPage('admin-page');
+            db.ref('system/accounting/commission').on('value', s => document.getElementById('admin-sys-commission').innerText = (s.val() || 0) + " ₺");
+            db.ref('users').on('value', s => {
+                document.getElementById('admin-total-users').innerText = s.numChildren();
+                let h = ''; s.forEach(c => { const u = c.val(); h += `<div class="stat-card mb-2 flex justify-between"><span>${u.username}</span><b>${u.diamonds} ₺</b></div>`; });
+                document.getElementById('admin-users-cards').innerHTML = h;
+            });
+        }
+
+        function startLobby() {
+            currentUserUid = auth.currentUser.uid;
+            db.ref('users/' + currentUserUid).on('value', s => {
+                userData = s.val(); if(!userData) return;
+                document.getElementById('display-name').innerText = userData.username;
+                document.getElementById('user-diamonds').innerText = userData.diamonds + " ₺";
+            });
+            db.ref('system/config/maintenance').on('value', s => {
+                if(s.val() && !isAdmin) showPage('maintenance-page'); else showPage('lobby-page');
+            });
+            db.ref('system/rooms').on('value', s => {
+                let h = ''; s.forEach(c => { const r = c.val(); h += `<div class="stat-card border-l-4 border-blue-600">${r.name} - ${r.entryFee} ₺</div>`; });
+                document.getElementById('rooms-list').innerHTML = h;
+            });
+        }
+
         function logout() { auth.signOut().then(() => location.reload()); }
-        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-        function showWithdrawModal() { document.getElementById('withdraw-modal').classList.remove('hidden'); }
-        function closeWithdrawModal() { document.getElementById('withdraw-modal').classList.add('hidden'); }
-        function submitWithdraw() {
-            const n = document.getElementById('w-name').value, i = document.getElementById('w-iban').value, a = parseInt(document.getElementById('w-amount').value);
-            if(a >= 500 && userData.diamonds >= a) {
-                db.ref('system/withdraw_requests').push({ name: n, iban: i, amount: a, uid: currentUserUid });
-                db.ref(`users/${currentUserUid}/diamonds`).transaction(v => v - a);
-                showToast("Talep Alındı."); closeWithdrawModal();
-            } else showToast("Bakiye yetersiz veya limit altı!", "error");
-        }
-        auth.onAuthStateChanged(u => { if(u && !isAdmin) startLobby(); else if(!isAdmin) showPage('auth-page'); });
+
+        auth.onAuthStateChanged(u => {
+            if (u && !isAdmin) startLobby();
+            else if (!isAdmin) showPage('auth-page');
+        });
     </script>
 </body>
 </html>
