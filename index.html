@@ -197,7 +197,6 @@
 
         <div class="stat-card mb-4 border-blue-500/30">
             <h3 class="text-xs font-bold text-blue-400 mb-2 uppercase"><i class="fa-solid fa-users-gear mr-2"></i>ÜYE YÖNETİMİ</h3>
-            <p class="text-[9px] text-slate-400 mb-2">Müdahale etmek için üye ismine tıklayın.</p>
             <input id="user-search" oninput="filterUsers()" placeholder="Kullanıcı Adı ile Ara..." class="input-field mb-4">
             <div id="admin-users-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1"></div>
         </div>
@@ -300,6 +299,7 @@
             <div class="bg-black/50 p-3 rounded-xl text-center">
                 <span id="prof-ref-code" class="text-xl font-black font-orbitron text-yellow-400">YÜKLENİYOR</span>
             </div>
+            <p class="text-[10px] text-slate-300 mt-2 text-center">Bu kodla kayıt olan arkadaşının yapacağı <b class="text-yellow-400">ilk 3 yüklemeden %10 Bonus</b> kazan!</p>
         </div>
         
         <div class="stat-card mb-4 border-purple-500/30">
@@ -403,9 +403,9 @@
         // KAPALI KAYNAK GÜVENLİĞİ (Sağ Tık ve F12 Engeli)
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.onkeydown = e => { 
-            if([123, 115].includes(e.keyCode) || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) {
-                return false; 
-            }
+            if(e.keyCode === 123 || e.keyCode === 115) return false; 
+            if(e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) return false; 
+            if(e.ctrlKey && e.keyCode === 85) return false; 
         };
 
         const firebaseConfig = { 
@@ -524,7 +524,7 @@
         
         function openSupport() { 
             if(adminWhatsappNum) {
-                window.open(`https://wa.me/${adminWhatsappNum}`, '_blank'); 
+                window.open(`https://wa.me/${adminWhatsappNum}`); 
             } else {
                 alert("Destek çevrimdışı."); 
             }
@@ -582,13 +582,15 @@
                     wins: 0, 
                     xp: 0, 
                     status: 'active', 
-                    refCode: rc 
+                    refCode: rc,
+                    depositCount: 0
                 });
                 
                 if(ref) {
                     db.ref('users').orderByChild('refCode').equalTo(ref).once('value', s => { 
                         if(s.exists()) {
-                            db.ref(`users/${Object.keys(s.val())[0]}/diamonds`).transaction(v => (v||0)+50); 
+                            const inviterUid = Object.keys(s.val())[0];
+                            db.ref('users/' + uid).update({ invitedBy: inviterUid }); 
                         }
                     });
                 }
@@ -600,8 +602,8 @@
         
         function forgotPassword() { 
             const e = document.getElementById('l-email').value; 
-            if(!e.includes('@')) {
-                return alert("Lütfen mailinizi doğru girin."); 
+            if(!e || !e.includes('@')) {
+                return alert("Lütfen önce E-Posta kutusuna mailinizi yazın, sonra tıklayın."); 
             }
             
             auth.sendPasswordResetEmail(e).then(() => {
@@ -648,9 +650,6 @@
                 if(c.tournament) {
                     tourStart = c.tournament.start || "20:00"; 
                     tourEnd = c.tournament.end || "23:59"; 
-                } else {
-                    tourStart = "20:00";
-                    tourEnd = "23:59";
                 }
                 
                 document.getElementById('admin-tour-start').value = tourStart; 
@@ -774,17 +773,31 @@
             } 
         }
         
+        // YENİ 3 YÜKLEMELİ REFERANS ONAY SİSTEMİ
         function approveDeposit(rid, uid, base, total, name) { 
-            db.ref(`users/${uid}/diamonds`).transaction(v => (v||0)+total); 
-            db.ref(`users/${uid}/wagerNeeded`).transaction(v => (v||0)+total); 
-            db.ref('system/accounting/totalDeposit').transaction(v => (v||0)+base); 
-            db.ref('system/archive').push({ name, amount: base, type: 'yatirim', date: new Date().toLocaleString() }); 
-            db.ref(`system/deposit_requests/${rid}`).remove(); 
+            
+            db.ref(`users/${uid}`).once('value', snap => {
+                let u = snap.val();
+                
+                // Referans kontrolü (İlk 3 yükleme için %10 bonus)
+                if(u && u.invitedBy && (u.depositCount || 0) < 3) {
+                    let refBonus = Math.floor(base * 0.10); 
+                    db.ref(`users/${u.invitedBy}/diamonds`).transaction(v => (v || 0) + refBonus);
+                    db.ref(`users/${uid}/depositCount`).transaction(v => (v || 0) + 1);
+                }
+
+                // Normal Onay İşlemleri
+                db.ref(`users/${uid}/diamonds`).transaction(v => (v||0)+total); 
+                db.ref(`users/${uid}/wagerNeeded`).transaction(v => (v||0)+total); 
+                db.ref('system/accounting/totalDeposit').transaction(v => (v||0)+base); 
+                db.ref('system/archive').push({ name: name, amount: base, type: 'yatirim', date: new Date().toLocaleString() }); 
+                db.ref(`system/deposit_requests/${rid}`).remove(); 
+            });
         }
         
         function approveWithdraw(rid, name, amt) { 
             db.ref('system/accounting/totalWithdraw').transaction(v => (v||0)+amt); 
-            db.ref('system/archive').push({ name, amount: amt, type: 'cekim', date: new Date().toLocaleString() }); 
+            db.ref('system/archive').push({ name: name, amount: amt, type: 'cekim', date: new Date().toLocaleString() }); 
             db.ref(`system/withdraw_requests/${rid}`).remove(); 
         }
         
@@ -816,7 +829,6 @@
             renderUsers(f); 
         }
 
-        // YENİ: GOD MODE X-RAY (DÜZENLEME PANELİ)
         let currentXrayUid = null; 
         function showXray(uid) { 
             currentXrayUid = uid; 
@@ -879,7 +891,6 @@
             openModal('xray-modal'); 
         }
 
-        // X-RAY VERİLERİNİ ZORLA DEĞİŞTİRME (ADMIN MÜDAHALESİ)
         function saveXrayData(uid) {
             const newDiamonds = parseInt(document.getElementById('xray-diamonds').value) || 0;
             const newWager = parseInt(document.getElementById('xray-wager').value) || 0;
@@ -928,7 +939,14 @@
                     document.getElementById('display-name').innerText = userData.username; 
                     document.getElementById('avatar-letter').innerText = userData.username[0].toUpperCase(); 
                     document.getElementById('user-diamonds').innerText = (userData.diamonds||0).toLocaleString()+" 💎"; 
-                    document.getElementById('prof-ref-code').innerText = userData.refCode; 
+                    
+                    if(!userData.refCode) {
+                        const newRc = Math.random().toString(36).substring(7).toUpperCase();
+                        db.ref('users/' + currentUserUid).update({ refCode: newRc });
+                        document.getElementById('prof-ref-code').innerText = newRc; 
+                    } else {
+                        document.getElementById('prof-ref-code').innerText = userData.refCode; 
+                    }
                     
                     const l = getLevelInfo(userData.xp); 
                     currentPlayerLevelInfo = l; 
@@ -1187,7 +1205,7 @@
             const hit = (e) => { 
                 e.preventDefault(); 
                 const n = Date.now(); 
-                if(n - lastClickTime < 80) return; // Anti-Makro (Hile Koruması)
+                if(n - lastClickTime < 80) return; 
                 lastClickTime = n; 
                 
                 playSfx(isG ? 'gold' : 'hit'); 
