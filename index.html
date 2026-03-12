@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARENA V14 | ULTIMATE E-SPORTS CEO</title>
+    <title>ARENA V14 | GOLD EDITION</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -13,36 +13,53 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;600;700;900&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body, html { width: 100%; height: 100%; background-color: #020617; color: white; overflow: hidden; font-family: 'Inter', sans-serif; user-select: none; }
-        .font-orbitron { font-family: 'Orbitron', sans-serif; }
-        .page { position: absolute; inset: 0; padding: 1.5rem; overflow-y: auto; background: radial-gradient(circle at top, #0f172a 0%, #020617 100%); display: none; }
-        .active { display: block !important; }
-        .hidden-element { display: none !important; }
-        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
-        .stat-card { background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)); border-radius: 20px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); }
-        .input-field { width: 100%; background: rgba(0, 0, 0, 0.5); padding: 0.9rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1); outline: none; color: white; font-size: 14px; }
-        #game-area { position: relative; width: 100%; height: 50vh; background: rgba(0,0,0,0.6); border-radius: 24px; border: 2px solid #1e293b; overflow: hidden; margin-top: 10px; box-shadow: inset 0 0 30px rgba(0,0,0,0.9); }
-        .target { position: absolute; width: 60px; height: 60px; background: radial-gradient(circle, #60a5fa, #2563eb); border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 20px #3b82f6; transform: scale(0); animation: pop 0.2s forwards; cursor: pointer; }
-        .target.golden { background: radial-gradient(circle, #fde047, #ca8a04); border-color: #fef08a; box-shadow: 0 0 30px #eab308; width: 40px; height: 40px; z-index: 5; }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+        body, html { width: 100%; height: 100%; background: #020617; color: white; overflow: hidden; font-family: 'Inter', sans-serif; }
+        
+        /* Premium Background */
+        .page { 
+            position: absolute; inset: 0; padding: 1.2rem; 
+            background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%); 
+            display: none; overflow-y: auto;
+        }
+        .active { display: block !important; animation: fadeIn 0.4s ease-out; }
+        
+        /* Modern Glassmorphism */
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 24px; }
+        .neon-border { border: 1px solid rgba(59, 130, 246, 0.4); box-shadow: 0 0 15px rgba(37, 99, 235, 0.2); }
+        
+        .stat-card { 
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.9)); 
+            border-radius: 20px; padding: 1.2rem; border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        /* Game Area Styles */
+        #game-area { 
+            position: relative; width: 100%; height: 55vh; 
+            background: rgba(0,0,0,0.4); border-radius: 30px; 
+            border: 2px solid rgba(59, 130, 246, 0.3); overflow: hidden;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+        }
+        .target { 
+            position: absolute; width: 55px; height: 55px; 
+            background: radial-gradient(circle, #3b82f6, #1d4ed8); 
+            border: 3px solid #fff; border-radius: 50%; 
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.8);
+            transform: scale(0); animation: pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .target.golden { background: radial-gradient(circle, #fbbf24, #b45309); box-shadow: 0 0 35px #f59e0b; width: 42px; height: 42px; }
+        
         @keyframes pop { to { transform: scale(1); } }
-        @keyframes floatEmoji { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-150px) scale(2); opacity: 0; } }
-        .floating-emoji { position: absolute; font-size: 40px; animation: floatEmoji 1.5s ease-out forwards; pointer-events: none; z-index: 100; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; }
-        .modal.flex { display: flex !important; }
-        .chat-box { height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-        .chat-msg { background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 12px; font-size: 12px; width: fit-content; max-width: 90%; }
-        .chat-msg.me { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); align-self: flex-end; }
-        .marquee { width: 100%; overflow: hidden; background: rgba(59, 130, 246, 0.2); padding: 4px; border-radius: 8px; font-size: 10px; font-weight: bold; color: #60a5fa; margin-bottom: 10px; white-space: nowrap; }
-        .marquee p { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
-        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-        .wa-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background-color: #25D366; color: white; border-radius: 50px; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0px 0px 15px rgba(37, 211, 102, 0.5); z-index: 100; cursor: pointer; }
-        #toast-container { position: fixed; top: 20px; right: 20px; left: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; align-items: center; }
-        .toast { padding: 14px 24px; border-radius: 16px; font-size: 12px; font-weight: bold; color: white; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); transform: translateY(-150%); animation: dropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: auto; max-width: 350px; width: 100%; }
-        .toast.success { background: linear-gradient(135deg, #059669, #10b981); border: 1px solid #34d399; }
-        .toast.error { background: linear-gradient(135deg, #e11d48, #f43f5e); border: 1px solid #fb7185; }
-        @keyframes dropIn { to { transform: translateY(0); } }
-        @keyframes fadeOutUp { to { transform: translateY(-150%); opacity: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Buttons */
+        .btn-primary { background: linear-gradient(90deg, #2563eb, #7c3aed); border-radius: 16px; font-weight: 900; letter-spacing: 1px; transition: all 0.2s; }
+        .btn-primary:active { transform: scale(0.96); opacity: 0.9; }
+
+        .toast { position: fixed; top: 20px; left: 20px; right: 20px; padding: 1rem; border-radius: 16px; font-weight: bold; z-index: 1000; animation: slideDown 0.3s forwards; }
+        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -50,70 +67,96 @@
     <div id="toast-container"></div>
 
     <div id="auth-page" class="page active flex flex-col justify-center items-center">
-        <h1 class="text-4xl font-black font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-6 tracking-tighter drop-shadow-lg">ARENA V14</h1>
-        <div id="login-box" class="glass p-6 rounded-3xl w-full max-w-sm shadow-2xl">
-            <input id="l-email" placeholder="E-Posta Adresiniz" class="input-field mb-3">
-            <input id="l-pass" type="password" placeholder="Şifre" class="input-field mb-4">
-            <button onclick="handleLogin()" class="w-full bg-blue-600 py-4 rounded-2xl font-black mb-3 active:scale-95 transition-all text-sm tracking-widest">GİRİŞ YAP</button>
-            <button onclick="toggleAuthMode('register')" class="w-full border border-blue-500 text-blue-400 py-3 rounded-2xl font-bold active:scale-95 transition-all text-xs">YENİ HESAP OLUŞTUR</button>
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-black font-orbitron tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-purple-600">ARENA V14</h1>
+            <p class="text-slate-500 text-xs font-bold tracking-widest mt-2 uppercase">Elite E-Sports Management</p>
+        </div>
+        <div class="glass p-8 w-full max-w-sm shadow-2xl neon-border">
+            <div class="space-y-4">
+                <input id="l-email" placeholder="E-Posta" class="input-field">
+                <input id="l-pass" type="password" placeholder="Şifre" class="input-field">
+                <button onclick="handleLogin()" class="w-full btn-primary py-4 text-sm">SİSTEME BAĞLAN</button>
+            </div>
         </div>
     </div>
 
     <div id="lobby-page" class="page">
-        <div class="marquee"><p id="lobby-announcement">Arena V14 Rekabetçi Platformuna Hoşgeldiniz!</p></div>
-        <div class="flex justify-between items-center mb-4">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-xl" id="avatar-letter">A</div>
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+                    <span id="avatar-letter" class="text-2xl font-black">A</span>
+                </div>
                 <div>
-                    <h2 id="display-name" class="font-bold text-sm uppercase">...</h2>
-                    <p id="user-diamonds" class="text-cyan-400 font-black text-lg">0 💎</p>
+                    <h2 id="display-name" class="font-black text-sm text-slate-200">...</h2>
+                    <p id="user-diamonds" class="text-2xl font-black text-cyan-400 font-orbitron">0 💎</p>
                 </div>
             </div>
-            <button onclick="logout()" class="w-10 h-10 glass rounded-xl text-red-500"><i class="fa-solid fa-power-off"></i></button>
+            <button onclick="logout()" class="w-12 h-12 glass rounded-2xl text-red-500 flex items-center justify-center border-red-500/20"><i class="fa-solid fa-power-off"></i></button>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-6">
-            <button onclick="openModal('deposit-modal')" class="stat-card flex items-center justify-center gap-2 bg-blue-500/10 p-3">
-                <i class="fa-regular fa-gem text-blue-500"></i><span class="text-[10px] font-bold">ELMAS AL</span>
-            </button>
-            <button onclick="openWithdrawModal()" class="stat-card flex items-center justify-center gap-2 bg-emerald-500/10 p-3">
-                <i class="fa-solid fa-money-bill-transfer text-emerald-500"></i><span class="text-[10px] font-bold">BOZDUR</span>
-            </button>
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div onclick="openModal('deposit-modal')" class="stat-card border-blue-500/20 active:scale-95 transition-all cursor-pointer">
+                <i class="fa-solid fa-plus-circle text-blue-400 mb-2"></i>
+                <p class="text-[10px] font-bold text-slate-400">ELMAS YÜKLE</p>
+            </div>
+            <div onclick="openWithdrawModal()" class="stat-card border-emerald-500/20 active:scale-95 transition-all cursor-pointer">
+                <i class="fa-solid fa-wallet text-emerald-400 mb-2"></i>
+                <p class="text-[10px] font-bold text-slate-400">NAKİT ÇIKIŞ</p>
+            </div>
         </div>
 
-        <h3 class="text-slate-400 font-black text-[10px] tracking-widest mb-3">AKTİF ODALAR</h3>
-        <div id="rooms-list" class="space-y-3"></div>
+        <h3 class="text-xs font-black text-slate-500 tracking-[0.3em] mb-4 uppercase pl-1">Arena Canlı Odalar</h3>
+        <div id="rooms-list" class="space-y-4"></div>
     </div>
 
     <div id="matchmaking-overlay" class="modal">
-        <div class="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-6"></div>
-        <h2 class="text-2xl font-black font-orbitron">RAKİP ARANIYOR...</h2>
-        <p id="match-room-info" class="text-blue-400 text-xs font-bold mb-10"></p>
-        <button onclick="cancelMatchmaking()" class="glass border-red-500/30 text-red-500 px-10 py-3 rounded-xl text-xs font-black">İPTAL ET</button>
+        <div class="relative w-24 h-24 mb-8">
+            <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin"></div>
+        </div>
+        <h2 class="text-2xl font-black font-orbitron tracking-widest text-white">RAKİP ARANIYOR</h2>
+        <p id="match-room-info" class="text-blue-400 text-xs font-black mt-2 bg-blue-500/10 px-4 py-1 rounded-full"></p>
+        <button onclick="cancelMatchmaking()" class="mt-12 text-red-500 font-black text-[10px] tracking-widest uppercase border-b border-red-500/30 pb-1">Sıradan Çık</button>
     </div>
 
-    <div id="game-page" class="page">
+    <div id="game-page" class="page !p-0">
         <div class="flex flex-col h-full">
-            <div class="flex justify-between items-center mb-2 glass p-4 rounded-3xl">
-                <div class="text-center w-1/3">Sen<br><span id="my-score" class="text-4xl font-black">0</span></div>
-                <div class="text-center w-1/3 text-red-500">Süre<br><span id="game-time" class="text-3xl font-orbitron">30</span></div>
-                <div class="text-center w-1/3"><span id="opp-name">Rakip</span><br><span id="opp-score" class="text-4xl font-black">0</span></div>
+            <div class="p-6 flex justify-between items-center glass !rounded-none border-0 border-b">
+                <div class="text-center">
+                    <p class="text-[9px] font-bold text-blue-400 uppercase">OYUNCU</p>
+                    <span id="my-score" class="text-4xl font-black font-orbitron">0</span>
+                </div>
+                <div class="text-center bg-red-500/10 px-6 py-2 rounded-2xl border border-red-500/20">
+                    <p class="text-[9px] font-bold text-red-500 uppercase">KALAN SÜRE</p>
+                    <span id="game-time" class="text-2xl font-black font-orbitron text-red-500">30</span>
+                </div>
+                <div class="text-center">
+                    <p id="opp-name" class="text-[9px] font-bold text-slate-500 uppercase">RAKİP</p>
+                    <span id="opp-score" class="text-4xl font-black font-orbitron text-slate-400">0</span>
+                </div>
             </div>
-            <div id="emoji-display-area" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
-            <div id="game-area" class="flex-1"></div>
-            <div id="emoji-bar" class="flex justify-center gap-6 p-4 glass rounded-t-3xl mt-2">
-                <button onclick="sendEmoji('🔥')" class="text-3xl">🔥</button>
-                <button onclick="sendEmoji('😂')" class="text-3xl">😂</button>
-                <button onclick="sendEmoji('😡')" class="text-3xl">😡</button>
+            
+            <div id="emoji-display-area" class="absolute inset-0 pointer-events-none z-50"></div>
+            <div id="game-area" class="mx-4 mt-6"></div>
+
+            <div class="mt-auto p-6 flex justify-around items-center glass !rounded-t-3xl border-0 border-t">
+                <button onclick="sendEmoji('🔥')" class="text-4xl active:scale-125 transition-transform">🔥</button>
+                <button onclick="sendEmoji('😂')" class="text-4xl active:scale-125 transition-transform">😂</button>
+                <button onclick="sendEmoji('😡')" class="text-4xl active:scale-125 transition-transform">😡</button>
             </div>
         </div>
     </div>
 
-    <div id="deposit-modal" class="modal"><div class="glass p-6 rounded-3xl w-full max-w-sm"><h2 class="font-black mb-4">ELMAS AL</h2><input id="dep-amount" type="number" placeholder="Miktar" class="input-field mb-4"><button onclick="submitDeposit()" class="w-full bg-blue-600 py-3 rounded-xl font-bold">TALEP GÖNDER</button><button onclick="closeModal('deposit-modal')" class="w-full mt-2 text-slate-400">Kapat</button></div></div>
-    <div id="withdraw-modal" class="modal"><div class="glass p-6 rounded-3xl w-full max-w-sm"><h2 class="font-black mb-4">BOZDUR</h2><input id="w-amount" type="number" placeholder="Miktar" class="input-field mb-4"><button onclick="submitWithdraw()" class="w-full bg-emerald-600 py-3 rounded-xl font-bold">TALEBİ OLUŞTUR</button><button onclick="closeModal('withdraw-modal')" class="w-full mt-2 text-slate-400">Kapat</button></div></div>
+    <div id="deposit-modal" class="modal">
+        <div class="glass p-8 w-full max-w-sm neon-border">
+            <h2 class="font-black text-xl mb-6 font-orbitron">ELMAS YÜKLE</h2>
+            <input id="dep-amount" type="number" placeholder="Miktar (💎)" class="input-field mb-6">
+            <button onclick="submitDeposit()" class="w-full btn-primary py-4 text-sm">YATIRIM TALEBİ GÖNDER</button>
+            <button onclick="closeModal('deposit-modal')" class="w-full mt-4 text-slate-500 font-bold text-xs uppercase">Vazgeç</button>
+        </div>
+    </div>
 
     <script>
-        // --- CONFIG & BOT LIST ---
         const firebaseConfig = { 
             apiKey: "AIzaSyCpBrkM6Yh__FXhc8aznEp1G2AqMgxr_iE", 
             authDomain: "arenav14-8ad95.firebaseapp.com", 
@@ -127,25 +170,18 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        const botNames = [
-            "Murat_33", "Selin_Gunes", "Canberk_E", "Elif_Mersin", "Aslan_Bey", "Derin_Su",
-            "Yigit_Pro", "Ceren_x", "Baris_34", "Zeynep_Ada", "Hakan_TR", "Gamze_Y",
-            "Mert_Aslan", "Sude_01", "Emre_33", "Buse_G", "Kaan_Efe", "Derya_S",
-            "Mersinli_33", "Adanali_01", "Cengo_Bey", "Esra_Nur", "Polat_Alemdar"
-        ];
+        const botNames = ["Eren_33", "Selin_X", "Murat_Pro", "Ceren_Ada", "Arslan_01", "Demir_TR", "Zeynep_K", "Kaan_Boss"];
+        let currentUserUid, userData, isSearching = false, isPlaying = false, currentGameId, myKey, currentMatchRoom;
+        let timeLeft = 30, gameInterval, targetInterval, botLogicInterval;
 
-        let currentUserUid, userData, isSearching = false, isPlaying = false, currentGameId, myKey, currentMatchRoom, searchTimer;
-        let timeLeft = 30, gameInterval, targetInterval;
-
-        // --- AUTH ---
+        // AUTH & LOBBY
         function handleLogin() {
             const e = document.getElementById('l-email').value; const p = document.getElementById('l-pass').value;
-            auth.signInWithEmailAndPassword(e, p).catch(() => showToast("Hata!", "error"));
+            if(!e || !p) return showToast("Eksik bilgi!", "error");
+            auth.signInWithEmailAndPassword(e, p).catch(() => showToast("Hatalı Giriş!", "error"));
         }
-
         function logout() { auth.signOut().then(() => location.reload()); }
 
-        // --- LOBBY & DATA ---
         function startLobby() {
             currentUserUid = auth.currentUser.uid;
             showPage('lobby-page');
@@ -153,28 +189,35 @@
                 userData = s.val();
                 if(userData) {
                     document.getElementById('display-name').innerText = userData.username;
-                    document.getElementById('user-diamonds').innerText = (userData.diamonds || 0) + " 💎";
+                    document.getElementById('user-diamonds').innerText = (userData.diamonds || 0).toLocaleString();
                     document.getElementById('avatar-letter').innerText = userData.username[0].toUpperCase();
                 }
             });
             db.ref('system/rooms').on('value', s => {
                 let h = ''; s.forEach(c => {
                     const r = c.val();
-                    h += `<div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}')" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 cursor-pointer mb-2"><div><p class="font-black text-sm">${r.name}</p><p class="text-[10px] text-slate-400">${r.entryFee} 💎 GİRİŞ</p></div><i class="fa-solid fa-play text-blue-500"></i></div>`;
+                    h += `
+                    <div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}')" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 cursor-pointer">
+                        <div>
+                            <p class="font-black text-sm tracking-tight text-white uppercase">${r.name}</p>
+                            <p class="text-[10px] text-blue-400 font-bold">${r.entryFee} 💎 GİRİŞ | <span class="text-green-400">${r.reward} 💎 ÖDÜL</span></p>
+                        </div>
+                        <div class="bg-blue-600/20 px-4 py-2 rounded-xl text-blue-400 border border-blue-500/30">
+                            <i class="fa-solid fa-play text-xs"></i>
+                        </div>
+                    </div>`;
                 });
-                document.getElementById('rooms-list').innerHTML = h;
+                document.getElementById('rooms-list').innerHTML = h || '<p class="text-center py-8 text-slate-600 font-bold text-xs uppercase tracking-widest">Oda Hazırlanıyor...</p>';
             });
             db.ref('system/active_players/' + currentUserUid + '/game').on('value', s => { if(s.val() && !isPlaying) startGame(s.val()); });
         }
 
-        // --- MATCHMAKING & BOT ENGINE ---
+        // MATCHMAKING & SINSI BOT ENGINE
         function joinMatch(rid, entry, reward, name) {
             if(isSearching || isPlaying) return;
             if((userData.diamonds || 0) < entry) return showToast("Yetersiz Bakiye!", "error");
 
-            isSearching = true;
-            currentMatchRoom = { rid, entry, reward, name };
-            
+            isSearching = true; currentMatchRoom = { rid, entry, reward, name };
             db.ref('users/' + currentUserUid + '/diamonds').transaction(v => v - entry);
             openModal('matchmaking-overlay');
             document.getElementById('match-room-info').innerText = name;
@@ -195,7 +238,7 @@
                         db.ref('system/games/' + gid).set({
                             p1: data.uid, p1Name: data.name, p1Score: 0,
                             p2: currentUserUid, p2Name: userData.username, p2Score: 0,
-                            entry, reward, status: 'playing'
+                            entry, reward, status: 'playing', isBotGame: false
                         }).then(() => {
                             db.ref('system/active_players/' + data.uid + '/game').set(gid);
                             db.ref('system/active_players/' + currentUserUid + '/game').set(gid);
@@ -205,8 +248,8 @@
                 }
             });
 
-            // AGRESİF BOT SİSTEMİ: 4 Saniye beklerse botu salla
-            searchTimer = setTimeout(() => {
+            // 4 Saniye Sonra Rakip Yoksa Botu Salla
+            setTimeout(() => {
                 if(isSearching && !isPlaying) {
                     matchRef.remove();
                     startBotGame(entry, reward, name);
@@ -219,22 +262,14 @@
             const botName = botNames[Math.floor(Math.random() * botNames.length)];
             db.ref('system/games/' + gid).set({
                 p1: currentUserUid, p1Name: userData.username, p1Score: 0,
-                p2: 'BOT', p2Name: botName, p2Score: 0,
+                p2: 'BOT_ID', p2Name: botName, p2Score: 0,
                 entry, reward, status: 'playing', isBotGame: true
             }).then(() => {
                 db.ref('system/active_players/' + currentUserUid + '/game').set(gid);
             });
         }
 
-        function cancelMatchmaking() {
-            if(!isSearching) return;
-            clearTimeout(searchTimer);
-            db.ref('system/matchmaking/' + currentMatchRoom.rid).remove();
-            db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v||0) + currentMatchRoom.entry);
-            isSearching = false; closeModal('matchmaking-overlay');
-        }
-
-        // --- GAME CORE ---
+        // GAME CORE
         function startGame(gid) {
             isPlaying = true; isSearching = false; currentGameId = gid;
             closeModal('matchmaking-overlay'); showPage('game-page');
@@ -249,23 +284,30 @@
                 document.getElementById('opp-name').innerText = (myKey === 'p1Score') ? g.p2Name : g.p1Name;
             });
 
-            // BOT EMOJI SİSTEMİ
-            db.ref('system/games/' + gid + '/emojis').on('child_added', s => {
-                const d = s.val(); renderFloatingEmoji(d.e, d.sender === currentUserUid ? 'left' : 'right');
-            });
-
+            // Real-time Bot Logic: Sen tıkladıkça botun tempoyu ayarlaması
             gameInterval = setInterval(() => {
                 timeLeft--; document.getElementById('game-time').innerText = timeLeft;
                 if(timeLeft <= 0) finishGame();
-                // Bot rastgele puan kazanır
-                db.ref('system/games/'+gid).once('value', sn => {
-                    if(sn.val().isBotGame && Math.random() < 0.3) {
-                        db.ref('system/games/'+gid+'/p2Score').transaction(v => v + 1);
-                        if(Math.random() < 0.1) sendBotEmoji();
+            }, 1000);
+
+            targetInterval = setInterval(spawn, 750);
+            
+            // Botun sinsi puan kazanma döngüsü
+            botLogicInterval = setInterval(() => {
+                db.ref('system/games/' + gid).once('value', sn => {
+                    const g = sn.val();
+                    if(g && g.isBotGame) {
+                        let myS = g[myKey];
+                        let botS = g.p2Score;
+                        // %80 Hedefine Göre: Oyuncu öndeyse botun puan alma ihtimalini artır
+                        let chance = (botS < myS) ? 0.45 : 0.25;
+                        if(Math.random() < chance) {
+                            db.ref('system/games/' + gid + '/p2Score').transaction(v => v + 1);
+                            if(Math.random() < 0.1) sendBotEmoji();
+                        }
                     }
                 });
-            }, 1000);
-            targetInterval = setInterval(spawn, 700);
+            }, 1200);
         }
 
         function spawn() {
@@ -275,31 +317,32 @@
             t.className = isG ? 'target golden' : 'target';
             t.style.left = Math.random() * (area.clientWidth - 60) + 'px';
             t.style.top = Math.random() * (area.clientHeight - 60) + 'px';
-            t.onclick = () => {
+            
+            const hit = () => {
                 db.ref('system/games/' + currentGameId + '/' + myKey).transaction(v => v + (isG ? 3 : 1));
                 t.remove();
             };
+            t.onclick = hit; t.ontouchstart = hit;
             area.appendChild(t);
-            setTimeout(() => t.remove(), 1000);
+            setTimeout(() => t.remove(), 1200);
         }
 
         function finishGame() {
-            clearInterval(gameInterval); clearInterval(targetInterval);
+            clearInterval(gameInterval); clearInterval(targetInterval); clearInterval(botLogicInterval);
             db.ref('system/games/' + currentGameId).once('value', s => {
                 let g = s.val(); if(!g) return;
                 let myS = g[myKey];
                 let oppS = (myKey === 'p1Score') ? g.p2Score : g.p1Score;
 
-                // %80 BOT GALİBİYET MANTIĞI
-                if(g.isBotGame) {
-                    if(Math.random() < 0.80 && myS >= oppS) {
-                        oppS = myS + Math.floor(Math.random() * 3) + 1;
-                    }
+                // %80 KESİN BOT GALİBİYETİ (Son Saniye Müdahalesi)
+                if(g.isBotGame && Math.random() < 0.80 && myS >= oppS) {
+                    oppS = myS + 1; // 1 puan farkla bot kazanır (Gerçekçilik)
                 }
 
                 const won = myS > oppS;
                 const draw = myS === oppS;
-                const cut = (g.entry * 2) - g.reward;
+                const totalPot = g.entry * 2;
+                const cut = totalPot - g.reward;
 
                 if(won) {
                     db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v || 0) + g.reward);
@@ -307,39 +350,33 @@
                 } else if(draw) {
                     db.ref('users/' + currentUserUid + '/diamonds').transaction(v => (v || 0) + g.entry);
                 } else if(g.isBotGame) {
-                    // BOT KAZANDI: Masadaki her şey kasaya
-                    db.ref('system/accounting/commission').transaction(v => (v || 0) + (g.entry * 2));
+                    // BOT KAZANDI: BÜTÜN HAVUZ KASAYA (Gizli Kâr)
+                    db.ref('system/accounting/commission').transaction(v => (v || 0) + totalPot);
                 }
 
                 db.ref('system/active_players/' + currentUserUid).remove();
                 isPlaying = false;
                 setTimeout(() => {
                     showPage('lobby-page');
-                    showToast(won ? "KAZANDIN!" : (draw ? "BERABERE" : "KAYBETTİN"), won ? "success" : "error");
+                    showToast(won ? "ZAFER SENİN!" : (draw ? "BERABERE" : "KAYBETTİN"), won ? "success" : "error");
                 }, 2000);
             });
         }
 
-        // --- UTILS ---
-        function sendEmoji(e) { db.ref('system/games/'+currentGameId+'/emojis').push({e, sender: currentUserUid}); }
-        function sendBotEmoji() { const emos=['🔥','😂','😡']; sendEmoji(emos[Math.floor(Math.random()*3)]); }
-        function renderFloatingEmoji(e, side) {
-            const el = document.createElement('div'); el.innerText = e; el.className = 'floating-emoji';
-            el.style.bottom = '20%'; el.style.left = side === 'left' ? '20%' : '70%';
-            document.getElementById('emoji-display-area').appendChild(el);
-            setTimeout(() => el.remove(), 1500);
-        }
+        // UTILS
         function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         function openModal(id) { document.getElementById(id).classList.add('flex'); }
         function closeModal(id) { document.getElementById(id).classList.remove('flex'); }
         function showToast(m, t) {
-            const c = document.getElementById('toast-container');
-            const x = document.createElement('div'); x.className = `toast ${t}`;
-            x.innerText = m; c.appendChild(x);
-            setTimeout(() => x.remove(), 3000);
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div'); el.className = `toast ${t === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`;
+            el.innerText = m; container.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
         }
-
-        auth.onAuthStateChanged(user => { if(user) startLobby(); else showPage('auth-page'); });
+        function sendEmoji(e) { db.ref('system/games/'+currentGameId+'/emojis').push({e, sender: currentUserUid, t: Date.now()}); }
+        function sendBotEmoji() { const emos=['🔥','😂','😡']; sendEmoji(emos[Math.floor(Math.random()*3)]); }
+        
+        auth.onAuthStateChanged(u => { if(u) startLobby(); else showPage('auth-page'); });
     </script>
 </body>
 </html>
