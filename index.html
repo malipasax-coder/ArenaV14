@@ -3,239 +3,530 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARENA V14 | BLACK OPS</title>
+    <title>ARENA V14 | ULTIMATE E-SPORTS CEO</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
-        .page { position: absolute; inset: 0; padding: 20px; display: none; background: #000; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;600;700;900&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body, html { 
+            width: 100%; height: 100%; 
+            background-color: #020617; color: white; 
+            overflow: hidden; font-family: 'Inter', sans-serif; user-select: none; 
+        }
+        
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        
+        .page { 
+            position: absolute; inset: 0; padding: 1.5rem; 
+            overflow-y: auto; background: radial-gradient(circle at top, #0f172a 0%, #020617 100%); 
+            display: none; 
+        }
+        
         .active { display: block !important; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 12px; padding: 15px; }
-        .input-field { width: 100%; background: #111; border: 1px solid #222; padding: 12px; border-radius: 8px; color: #fff; margin-bottom: 10px; }
-        .btn { width: 100%; padding: 15px; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
-        .btn-blue { background: #0066ff; color: #fff; }
-        .btn-blue:active { background: #0052cc; transform: scale(0.98); }
+        .hidden-element { display: none !important; }
         
-        /* Game Area */
-        #game-area { position: relative; width: 100%; height: 50vh; background: #050505; border: 2px solid #111; border-radius: 15px; overflow: hidden; margin-top: 15px; }
-        .target { position: absolute; width: 50px; height: 50px; background: #0066ff; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 15px #0066ff; cursor: pointer; }
-        .target.golden { background: #ffcc00; box-shadow: 0 0 15px #ffcc00; width: 40px; height: 40px; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .stat-card { background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)); border-radius: 20px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); }
+        .input-field { width: 100%; background: rgba(0, 0, 0, 0.5); padding: 0.9rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1); outline: none; color: white; font-size: 14px; }
         
-        /* Matchmaking Overlay */
-        #match-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: none; flex-direction: column; justify-content: center; align-items: center; }
-        .loader { width: 50px; height: 50px; border: 5px solid #111; border-top-color: #0066ff; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        #game-area { position: relative; width: 100%; height: 50vh; background: rgba(0,0,0,0.6); border-radius: 24px; border: 2px solid #1e293b; overflow: hidden; margin-top: 10px; box-shadow: inset 0 0 30px rgba(0,0,0,0.9); }
+        .target { position: absolute; width: 60px; height: 60px; background: radial-gradient(circle, #60a5fa, #2563eb); border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 20px #3b82f6; transform: scale(0); animation: pop 0.2s forwards; cursor: pointer; }
+        .target.golden { background: radial-gradient(circle, #fde047, #ca8a04); border-color: #fef08a; box-shadow: 0 0 30px #eab308; width: 40px; height: 40px; z-index: 5; }
+        
+        @keyframes pop { to { transform: scale(1); } }
+        
+        @keyframes floatEmoji { 
+            0% { transform: translateY(0) scale(1); opacity: 1; } 
+            100% { transform: translateY(-150px) scale(2); opacity: 0; } 
+        }
+        .floating-emoji { position: absolute; font-size: 40px; animation: floatEmoji 1.5s ease-out forwards; pointer-events: none; z-index: 100; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; }
+        .modal.flex { display: flex !important; }
+        
+        .chat-box { height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .chat-msg { background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 12px; font-size: 12px; width: fit-content; max-width: 90%; }
+        .chat-msg.me { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); align-self: flex-end; }
+        
+        .marquee { width: 100%; overflow: hidden; background: rgba(59, 130, 246, 0.2); padding: 4px; border-radius: 8px; font-size: 10px; font-weight: bold; color: #60a5fa; margin-bottom: 10px; white-space: nowrap; }
+        .marquee p { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+        
+        .wa-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background-color: #25D366; color: white; border-radius: 50px; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0px 0px 15px rgba(37, 211, 102, 0.5); z-index: 100; cursor: pointer; }
+        
+        #maintenance-overlay { z-index: 9999; background: #020617; }
+
+        /* Modern Bildirim (Toast) Sistemi CSS */
+        #toast-container { position: fixed; top: 20px; right: 20px; left: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; align-items: center; }
+        .toast { padding: 14px 24px; border-radius: 16px; font-size: 12px; font-weight: bold; color: white; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); transform: translateY(-150%); animation: dropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: auto; max-width: 350px; width: 100%; }
+        .toast.success { background: linear-gradient(135deg, #059669, #10b981); border: 1px solid #34d399; }
+        .toast.error { background: linear-gradient(135deg, #e11d48, #f43f5e); border: 1px solid #fb7185; }
+        .toast.info { background: linear-gradient(135deg, #2563eb, #3b82f6); border: 1px solid #60a5fa; }
+        .toast.warning { background: linear-gradient(135deg, #d97706, #f59e0b); border: 1px solid #fbbf24; color: #fff; }
+        @keyframes dropIn { to { transform: translateY(0); } }
+        @keyframes fadeOutUp { to { transform: translateY(-150%); opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="toast-container" class="fixed top-5 left-0 right-0 z-[200] flex flex-col items-center gap-2"></div>
+    <div id="toast-container"></div>
 
-    <div id="auth-page" class="page active flex flex-col justify-center">
-        <h1 class="text-4xl font-black text-center mb-10 tracking-tighter">ARENA <span class="text-blue-600">V14</span></h1>
-        <div class="card">
-            <input id="l-email" placeholder="E-Posta" class="input-field">
-            <input id="l-pass" type="password" placeholder="Şifre" class="input-field">
-            <button onclick="handleLogin()" class="btn btn-blue">GİRİŞ YAP</button>
+    <div id="maintenance-overlay" class="modal hidden-element text-center">
+        <i class="fa-solid fa-hammer text-6xl text-yellow-500 mb-6 animate-bounce"></i>
+        <h2 class="text-3xl font-black font-orbitron text-yellow-400 mb-2">BAKIM MOLASI</h2>
+        <p class="text-sm text-slate-400">Arena V14 altyapısı şu an güncelleniyor.<br>Çok kısa bir süre sonra döneceğiz.</p>
+    </div>
+
+    <div id="auth-page" class="page active flex flex-col justify-center items-center">
+        <h1 class="text-4xl font-black font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-6 tracking-tighter drop-shadow-lg">ARENA V14</h1>
+        
+        <div id="login-box" class="glass p-6 rounded-3xl w-full max-w-sm shadow-2xl">
+            <input id="l-email" placeholder="E-Posta Adresiniz" class="input-field mb-3">
+            <input id="l-pass" type="password" placeholder="Şifre" class="input-field mb-4">
+            <button onclick="handleLogin()" class="w-full bg-blue-600 py-4 rounded-2xl font-black mb-3 active:scale-95 transition-all text-sm tracking-widest">GİRİŞ YAP</button>
+            <button onclick="toggleAuthMode('register')" class="w-full border border-blue-500 text-blue-400 py-3 rounded-2xl font-bold active:scale-95 transition-all text-xs">YENİ HESAP OLUŞTUR</button>
+            <p onclick="forgotPassword()" class="text-xs text-slate-400 mt-4 text-center cursor-pointer hover:text-white transition-all underline">Şifremi Unuttum</p>
+        </div>
+
+        <div id="register-box" class="glass p-6 rounded-3xl w-full max-w-sm shadow-2xl hidden-element">
+            <div class="bg-red-500/20 border border-red-500/50 p-3 rounded-xl mb-4 text-center">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl mb-1"></i>
+                <p class="text-[9px] font-bold text-white">ÖNEMLİ UYARI</p>
+                <p class="text-[8px] text-slate-300 mt-1">Para çekme işlemlerinde sorun yaşamamak için banka hesabınızla eşleşen <b class="text-red-400">GERÇEK AD SOYAD</b> giriniz.</p>
+            </div>
+            <input id="r-name" placeholder="Adınız ve Soyadınız" class="input-field mb-2 text-sm border-blue-500/50">
+            <input id="r-email" type="email" placeholder="E-Posta Adresiniz" class="input-field mb-2 text-sm">
+            <input id="r-pass" type="password" placeholder="Şifre (Min 6 Hane)" class="input-field mb-2 text-sm">
+            <input id="r-ref" placeholder="Davet Kodu (Varsa)" class="input-field mb-3 text-sm border-yellow-500/30 text-yellow-400">
+            
+            <label class="flex items-start gap-2 mb-4 cursor-pointer">
+                <input type="checkbox" id="r-terms" class="mt-1">
+                <span class="text-[9px] text-slate-400">18 yaşından büyük olduğumu ve Kullanıcı Sözleşmesini okuyup kabul ettiğimi beyan ederim.</span>
+            </label>
+            <button onclick="handleRegister()" class="w-full bg-green-600 py-4 rounded-2xl font-black mb-3 active:scale-95 transition-all text-sm tracking-widest">KAYDINI TAMAMLA</button>
+            <button onclick="toggleAuthMode('login')" class="w-full bg-slate-800 text-slate-300 py-3 rounded-2xl font-bold active:scale-95 transition-all text-xs">GİRİŞ EKRANINA DÖN</button>
+        </div>
+    </div>
+
+    <div id="wa-btn" onclick="openSupport()" class="wa-float hidden-element">
+        <i class="fa-brands fa-whatsapp"></i>
+    </div>
+
+    <div id="admin-page" class="page">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-xl font-black font-orbitron text-purple-500 uppercase"><i class="fa-solid fa-chess-king mr-2"></i>Yönetim Paneli</h1>
+            <div class="flex gap-2">
+                <button onclick="showPage('admin-profile-page')" class="w-10 h-10 glass rounded-full text-blue-400"><i class="fa-solid fa-user-shield"></i></button>
+                <button onclick="logout()" class="w-10 h-10 glass rounded-full text-red-500"><i class="fa-solid fa-power-off"></i></button>
+            </div>
+        </div>
+
+        <div id="admin-system-card" class="stat-card border-red-500/50 mb-4 bg-red-500/5 text-center">
+            <h3 class="text-xs font-bold text-red-500 mb-2 uppercase tracking-widest"><i class="fa-solid fa-power-off mr-2"></i>Sistem Şalteri & Turnuva</h3>
+            <button id="admin-maintenance-btn" onclick="toggleMaintenance()" class="w-full bg-red-600 py-3 rounded-xl font-black text-xs tracking-widest mb-2">BAKIM MODUNU AÇ</button>
+            <button onclick="endTournament()" class="w-full bg-orange-600 py-3 rounded-xl font-black text-xs tracking-widest">TURNUVAYI BİTİR VE ÖDÜLLERİ DAĞIT</button>
+        </div>
+        
+        <div id="admin-finance-card" class="stat-card border-l-4 border-yellow-500 mb-4 bg-yellow-500/5">
+            <h3 class="text-xs font-bold text-yellow-400 mb-3 uppercase tracking-widest"><i class="fa-solid fa-vault mr-2"></i>FİNANSAL ÖZET</h3>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <div class="bg-black/40 p-2 rounded-xl border border-slate-700">
+                    <p class="text-[8px] text-slate-400">GİREN NAKİT</p>
+                    <h3 id="admin-total-deposit" class="text-sm font-black text-green-400">0 ₺</h3>
+                </div>
+                <div class="bg-black/40 p-2 rounded-xl border border-slate-700">
+                    <p class="text-[8px] text-slate-400">ÇIKAN NAKİT</p>
+                    <h3 id="admin-total-withdraw" class="text-sm font-black text-red-400">0 ₺</h3>
+                </div>
+            </div>
+            <div class="bg-black/60 p-3 rounded-xl border border-yellow-500/30 flex justify-between items-center shadow-inner">
+                <div><p class="text-[9px] text-slate-300 font-bold">NET KASA</p></div>
+                <h3 id="admin-net-vault" class="text-lg font-black font-orbitron text-yellow-400">0 ₺</h3>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-2">
+                <div class="bg-black/40 p-2 rounded-xl border border-slate-700 text-center"><p class="text-[7px] text-slate-400">SİSTEM KÂRI</p><h3 id="admin-sys-commission" class="text-[10px] font-black text-cyan-400">0 💎</h3></div>
+                <div class="bg-black/40 p-2 rounded-xl border border-slate-700 text-center"><p class="text-[7px] text-slate-400">OYUNCU BAKİYE</p><h3 id="admin-players-balance" class="text-[10px] font-black text-purple-400">0 💎</h3></div>
+                <div class="bg-black/40 p-2 rounded-xl border border-slate-700 text-center"><p class="text-[7px] text-slate-400">TOPLAM ÜYE</p><h3 id="admin-total-users" class="text-[10px] font-black text-blue-400">0</h3></div>
+            </div>
+        </div>
+
+        <div class="stat-card border-red-500/30 mb-4">
+            <h3 class="text-xs font-bold text-red-400 mb-3 uppercase tracking-widest"><i class="fa-solid fa-bullhorn mr-2"></i>İletişim & Saatler</h3>
+            <div class="flex gap-2 mb-2">
+                <input id="admin-whatsapp" placeholder="WhatsApp No" class="input-field mb-0 text-xs">
+                <button onclick="updateWhatsapp()" class="bg-green-600 px-4 rounded-xl text-[10px] font-bold">KAYDET</button>
+            </div>
+            <div class="flex gap-2 mb-3">
+                <input id="admin-announcement" placeholder="Kayan yazı..." class="input-field mb-0 text-xs">
+                <button onclick="updateAnnouncement()" class="bg-red-600 px-4 rounded-xl text-[10px] font-bold">YAYINLA</button>
+            </div>
+            <div class="flex gap-2 items-center">
+                <div class="flex-1"><p class="text-[9px] text-slate-400 mb-1">Açılış</p><input id="admin-tour-start" type="time" class="input-field mb-0 text-xs"></div>
+                <div class="flex-1"><p class="text-[9px] text-slate-400 mb-1">Kapanış</p><input id="admin-tour-end" type="time" class="input-field mb-0 text-xs"></div>
+                <button onclick="updateTournament()" class="bg-red-600 px-4 py-3 mt-4 rounded-xl text-[10px] font-bold">KAYDET</button>
+            </div>
+        </div>
+
+        <div class="stat-card border-purple-500/30 mb-4">
+            <h3 class="text-xs font-bold text-purple-400 mb-3 uppercase tracking-widest"><i class="fa-solid fa-khanda mr-2"></i>Oda & Radar</h3>
+            <div class="flex gap-1 mb-3">
+                <input id="new-room-name" placeholder="Oda Adı" class="input-field mb-0 text-[10px] w-2/5 px-2">
+                <input id="new-room-entry" type="number" placeholder="Giriş 💎" class="input-field mb-0 text-[10px] w-1/5 px-2">
+                <input id="new-room-pass" placeholder="Şifre(Yok)" class="input-field mb-0 text-[10px] w-1/5 px-2 border-red-500/50 text-red-400">
+                <button onclick="createNewRoom()" class="bg-purple-600 w-1/5 rounded-xl text-[10px] font-bold">KUR</button>
+            </div>
+            <div id="admin-rooms-list" class="space-y-1 mb-3 max-h-[100px] overflow-y-auto"></div>
+            <h4 class="text-[10px] text-purple-300 font-bold mb-1 mt-3">📡 CANLI RADAR</h4>
+            <div id="admin-live-radar" class="space-y-1 max-h-[100px] overflow-y-auto"></div>
+        </div>
+
+        <div id="admin-bonus-card" class="stat-card border-blue-500/30 mb-4">
+            <h3 class="text-xs font-bold text-blue-400 mb-3 uppercase tracking-widest"><i class="fa-solid fa-percent mr-2"></i>Bonuslar</h3>
+            <div class="flex gap-2 mb-2">
+                <div class="flex-1 relative"><span class="absolute right-3 top-3 text-xs text-slate-400">%</span><input id="admin-bonus-rate" type="number" placeholder="Sistem Bonusu" class="input-field mb-0 text-xs"></div>
+                <button onclick="updateSystemBonus()" class="bg-blue-600 px-4 rounded-xl text-[10px] font-bold">KAYDET</button>
+            </div>
+            <div class="flex gap-2">
+                <input id="admin-daily-amount" type="number" placeholder="Günlük Ödül (💎)" class="input-field mb-0 text-xs">
+                <button onclick="updateDailyReward()" class="bg-blue-600 px-4 rounded-xl text-[10px] font-bold">KAYDET</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mb-4">
+            <div class="stat-card border-emerald-500/30">
+                <h3 class="text-[9px] font-bold text-emerald-400 mb-2 uppercase">ONAY BEKLEYENLER</h3>
+                <div id="admin-deposit-list" class="space-y-2 max-h-[100px] overflow-y-auto"></div>
+                <div id="admin-withdraw-list" class="space-y-2 max-h-[100px] overflow-y-auto mt-2"></div>
+            </div>
+            <div class="stat-card border-slate-500/30">
+                <h3 class="text-[9px] font-bold text-slate-400 mb-2 uppercase"><i class="fa-solid fa-folder-open mr-1"></i>ARŞİV</h3>
+                <div id="admin-archive-list" class="space-y-1 max-h-[210px] overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <div class="stat-card mb-4 border-blue-500/30">
+            <h3 class="text-xs font-bold text-blue-400 mb-2 uppercase"><i class="fa-solid fa-users-gear mr-2"></i>ÜYE YÖNETİMİ</h3>
+            <input id="user-search" oninput="filterUsers()" placeholder="Kullanıcı Adı ile Ara..." class="input-field mb-4">
+            <div id="admin-users-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1"></div>
+        </div>
+    </div>
+
+    <div id="xray-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-red-500/50 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-black font-orbitron text-red-400"><i class="fa-solid fa-user-pen mr-2"></i>ÜYE DÜZENLE</h2>
+                <button onclick="closeModal('xray-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="xray-content" class="space-y-3 mb-4"></div>
+            <div class="flex gap-2 mb-2">
+                <button id="xray-save-btn" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-xs tracking-widest"><i class="fa-solid fa-floppy-disk mr-2"></i>KAYDET</button>
+                <button id="xray-ban-btn" class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs tracking-widest"><i class="fa-solid fa-gavel mr-2"></i>BANLA</button>
+            </div>
+            <button id="xray-role-btn" class="w-full bg-purple-600 py-3 rounded-xl font-bold text-xs tracking-widest mt-2"></button>
+        </div>
+    </div>
+
+    <div id="admin-profile-page" class="page">
+        <button onclick="showPage('admin-page')" class="mb-6 text-slate-400"><i class="fa-solid fa-arrow-left mr-2"></i>Geri Dön</button>
+        <h2 class="text-2xl font-black font-orbitron text-purple-500 mb-6">YÖNETİCİ AYARLARI</h2>
+        <div class="stat-card">
+            <p class="text-xs text-slate-400 mb-2">Güvenlik bilgileriniz artık Firebase üzerinden otomatik yönetilmektedir.</p>
         </div>
     </div>
 
     <div id="lobby-page" class="page">
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <p id="display-name" class="text-xs font-bold text-gray-500 uppercase">YÜKLENİYOR...</p>
-                <p id="user-diamonds" class="text-3xl font-black text-blue-500">0 💎</p>
+        <div class="marquee"><p id="lobby-announcement">Arena V14 E-Sports Platformuna Hoşgeldiniz!</p></div>
+        
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center gap-3 w-2/3">
+                <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center font-black shadow-lg shadow-blue-500/30 text-xl" id="avatar-letter">A</div>
+                <div class="w-full">
+                    <h2 id="display-name" class="font-bold text-sm uppercase truncate">...</h2>
+                    <p id="player-league-text" class="text-[9px] font-bold text-slate-400"><i class="fa-solid fa-trophy mr-1"></i>HESAPLANIYOR...</p>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
+                        <div id="player-xp-bar" class="bg-blue-500 h-full" style="width: 0%"></div>
+                    </div>
+                    <p id="player-xp-text" class="text-[7px] text-slate-400 text-right mt-0.5">0 / 0 XP</p>
+                </div>
             </div>
-            <button onclick="logout()" class="text-gray-600 text-2xl"><i class="fa-solid fa-power-off"></i></button>
+            <div class="flex gap-2">
+                <button onclick="toggleMute()" id="mute-btn" class="w-10 h-10 glass rounded-xl text-slate-300"><i class="fa-solid fa-volume-high"></i></button>
+                <button onclick="openModal('chat-modal')" class="w-10 h-10 glass rounded-xl text-blue-400 relative"><i class="fa-solid fa-message"></i></button>
+                <button onclick="showPage('profile-page')" class="w-10 h-10 glass rounded-xl text-slate-300"><i class="fa-solid fa-gear"></i></button>
+                <button onclick="logout()" class="w-10 h-10 glass rounded-xl text-slate-500"><i class="fa-solid fa-power-off"></i></button>
+            </div>
+        </div>
+        
+        <div class="stat-card mb-4 border-b-4 border-cyan-500 bg-cyan-500/5 py-8 text-center relative overflow-hidden">
+            <i class="fa-regular fa-gem absolute text-6xl opacity-10 -right-2 -bottom-2 text-cyan-400"></i>
+            <h1 id="user-diamonds" class="text-5xl font-black font-orbitron text-cyan-400">0 💎</h1>
+            <p class="text-[10px] text-slate-400 font-black mt-2 tracking-[0.2em]">ELMAS BAKİYESİ</p>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <button onclick="claimDailyReward()" class="stat-card flex items-center justify-center gap-2 bg-yellow-500/10 active:scale-95 p-3">
+                <i class="fa-solid fa-gift text-yellow-500 text-lg"></i><span class="text-[10px] font-bold">GÜNLÜK ÖDÜL</span>
+            </button>
+            <button onclick="openModal('leaderboard-modal')" class="stat-card flex items-center justify-center gap-2 bg-purple-500/10 active:scale-95 p-3">
+                <i class="fa-solid fa-crown text-purple-500 text-lg"></i><span class="text-[10px] font-bold">TOP 10</span>
+            </button>
+            <button onclick="openModal('deposit-modal')" class="stat-card flex items-center justify-center gap-2 bg-blue-500/10 active:scale-95 p-3">
+                <i class="fa-regular fa-gem text-blue-500 text-lg"></i><span class="text-[10px] font-bold">ELMAS AL</span>
+            </button>
+            <button onclick="openWithdrawModal()" class="stat-card flex items-center justify-center gap-2 bg-emerald-500/10 active:scale-95 p-3">
+                <i class="fa-solid fa-money-bill-transfer text-emerald-500 text-lg"></i><span class="text-[10px] font-bold">ELMAS BOZDUR</span>
+            </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-8">
-            <button onclick="openModal('deposit-modal')" class="card text-center border-blue-900/30">
-                <i class="fa-solid fa-plus text-blue-500 mb-1"></i>
-                <p class="text-[10px] font-bold">YÜKLE</p>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <button onclick="openModal('tasks-modal')" class="stat-card flex items-center justify-center gap-2 bg-indigo-500/10 border-indigo-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-list-check text-indigo-500 text-lg"></i><span class="text-[10px] font-bold text-indigo-400">GÜNLÜK GÖREVLER</span>
             </button>
-            <button onclick="showToast('Sadece kapalı saatlerde çekim yapılır','error')" class="card text-center">
-                <i class="fa-solid fa-minus text-gray-500 mb-1"></i>
-                <p class="text-[10px] font-bold">BOZDUR</p>
+            <button onclick="openModal('tourney-modal')" class="stat-card flex items-center justify-center gap-2 bg-orange-500/10 border-orange-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-trophy text-orange-500 text-lg"></i><span class="text-[10px] font-bold text-orange-400">TURNUVA LİGİ</span>
             </button>
         </div>
 
-        <p class="text-[10px] font-black text-gray-600 mb-4 tracking-widest uppercase">Aktif Odalar</p>
-        <div id="rooms-list" class="space-y-3"></div>
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <button onclick="openModal('store-modal')" class="stat-card flex items-center justify-center gap-2 bg-pink-500/10 border-pink-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-cart-shopping text-pink-500 text-lg"></i><span class="text-[10px] font-bold text-pink-400">VIP MAĞAZA</span>
+            </button>
+            <button onclick="openModal('rules-modal')" class="stat-card flex items-center justify-center gap-2 bg-slate-500/10 border-slate-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-circle-question text-slate-400 text-lg"></i><span class="text-[10px] font-bold text-slate-300">NASIL OYNANIR?</span>
+            </button>
+        </div>
+        
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="text-slate-400 font-black text-[10px] tracking-widest uppercase flex items-center gap-2">
+                <span id="tour-dot" class="w-2 h-2 bg-red-500 rounded-full"></span> AKTİF ODALAR
+            </h3>
+            <span id="tour-status-text" class="text-[9px] font-bold text-red-400">KAPALI</span>
+        </div>
+        
+        <div id="rooms-list" class="space-y-3 mb-6"></div>
     </div>
 
-    <div id="match-overlay">
-        <div class="loader mb-6"></div>
-        <h2 class="text-xl font-black uppercase tracking-widest">Rakip Aranıyor</h2>
-        <p id="room-info" class="text-blue-500 text-[10px] font-bold mt-2"></p>
-        <button onclick="cancelMatch()" class="mt-10 text-red-600 text-[10px] font-bold uppercase tracking-widest">İptal Et</button>
+    <div id="tasks-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-indigo-500/30">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-black font-orbitron text-indigo-400"><i class="fa-solid fa-list-check mr-2"></i>GÜNLÜK GÖREVLER</h2>
+                <button onclick="closeModal('tasks-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <p class="text-[9px] text-slate-400 mb-4">Görevler her gün 00:00'da sıfırlanır. Tamamla ve ödülleri kap!</p>
+            
+            <div class="space-y-3" id="tasks-container">
+                <div class="bg-black/50 p-3 rounded-xl border border-slate-700">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-white">3 Maç Oyna</span>
+                        <span id="task1-status" class="text-[10px] font-bold text-indigo-400">0/3</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mb-2 overflow-hidden"><div id="task1-bar" class="bg-indigo-500 h-full" style="width: 0%"></div></div>
+                    <button id="task1-btn" onclick="claimTaskReward('played', 3, 20, 'task1')" class="w-full bg-slate-700 py-1.5 rounded-lg text-[9px] font-bold text-slate-400 cursor-not-allowed">20 💎 ÖDÜLÜ AL</button>
+                </div>
+                <div class="bg-black/50 p-3 rounded-xl border border-slate-700">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-white">1 Maç Kazan</span>
+                        <span id="task2-status" class="text-[10px] font-bold text-green-400">0/1</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mb-2 overflow-hidden"><div id="task2-bar" class="bg-green-500 h-full" style="width: 0%"></div></div>
+                    <button id="task2-btn" onclick="claimTaskReward('won', 1, 30, 'task2')" class="w-full bg-slate-700 py-1.5 rounded-lg text-[9px] font-bold text-slate-400 cursor-not-allowed">30 💎 ÖDÜLÜ AL</button>
+                </div>
+                <div class="bg-black/50 p-3 rounded-xl border border-slate-700">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-white">10 Altın Hedef Vur</span>
+                        <span id="task3-status" class="text-[10px] font-bold text-yellow-400">0/10</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mb-2 overflow-hidden"><div id="task3-bar" class="bg-yellow-500 h-full" style="width: 0%"></div></div>
+                    <button id="task3-btn" onclick="claimTaskReward('golds', 10, 50, 'task3')" class="w-full bg-slate-700 py-1.5 rounded-lg text-[9px] font-bold text-slate-400 cursor-not-allowed">50 💎 ÖDÜLÜ AL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tourney-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-orange-500/30 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="font-black font-orbitron text-orange-400"><i class="fa-solid fa-trophy mr-2"></i>ARENA LİGİ</h2>
+                <button onclick="closeModal('tourney-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-xl mb-4 text-center">
+                <p class="text-[10px] text-slate-300">Giriş Ücreti: <b class="text-orange-400">100 💎</b></p>
+                <p class="text-[9px] text-slate-400 mt-1">Katıldıktan sonra kazandığın her maç sana <b class="text-white">+1 Puan</b> kazandırır. Turnuva bitiminde havuzdaki ödül ilk 3'e paylaştırılır!</p>
+                <div class="mt-2 text-xs font-black text-yellow-400 border-t border-orange-500/20 pt-2">
+                    GÜNCEL ÖDÜL HAVUZU: <span id="tourney-pool">0</span> 💎
+                </div>
+            </div>
+            
+            <button id="join-tourney-btn" onclick="joinTournament()" class="w-full bg-orange-600 py-3 rounded-xl text-xs font-bold mb-4 animate-pulse">TURNUVAYA KATIL (100 💎)</button>
+            
+            <div class="flex-1 overflow-y-auto">
+                <h3 class="text-[10px] font-bold text-slate-400 mb-2 border-b border-slate-700 pb-1">CANLI SIRALAMA</h3>
+                <div id="tourney-leaderboard" class="space-y-2 pr-1">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="store-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-pink-500/30">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-black font-orbitron text-pink-400"><i class="fa-solid fa-cart-shopping mr-2"></i>VIP MAĞAZA</h2>
+                <button onclick="closeModal('store-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <p class="text-[10px] text-slate-400 mb-4 text-center">Satın aldığınız VIP Renkler; Lobide isminizi boyar, yanına VIP Elmas (<i class="fa-solid fa-gem"></i>) ekler ve Chat'te isminizi bu renge boyar.</p>
+            
+            <div class="space-y-3">
+                <div class="bg-black/50 p-3 rounded-xl border border-red-500/30 flex justify-between items-center">
+                    <span class="font-black text-red-500 uppercase text-xs"><i class="fa-solid fa-gem mr-1"></i>KIRMIZI VIP</span>
+                    <button onclick="buyColor('#ef4444', 500, 'Kırmızı İsim')" class="bg-red-600 px-4 py-2 rounded-lg text-[10px] font-bold text-white shadow-[0_0_10px_rgba(239,68,68,0.5)]">500 💎</button>
+                </div>
+                <div class="bg-black/50 p-3 rounded-xl border border-yellow-500/30 flex justify-between items-center">
+                    <span class="font-black text-yellow-400 uppercase text-xs"><i class="fa-solid fa-gem mr-1"></i>ALTIN VIP</span>
+                    <button onclick="buyColor('#facc15', 1000, 'Altın İsim')" class="bg-yellow-600 px-4 py-2 rounded-lg text-[10px] font-bold text-white shadow-[0_0_10px_rgba(250,204,21,0.5)]">1000 💎</button>
+                </div>
+                <div class="bg-black/50 p-3 rounded-xl border border-purple-500/30 flex justify-between items-center">
+                    <span class="font-black text-purple-400 uppercase text-xs"><i class="fa-solid fa-gem mr-1"></i>EFSANE MOR</span>
+                    <button onclick="buyColor('#c084fc', 2000, 'Efsanevi Mor İsim')" class="bg-purple-600 px-4 py-2 rounded-lg text-[10px] font-bold text-white shadow-[0_0_10px_rgba(192,132,252,0.5)]">2000 💎</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-slate-500/30">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-black font-orbitron text-slate-300"><i class="fa-solid fa-circle-question mr-2"></i>KURALLAR</h2>
+                <button onclick="closeModal('rules-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="text-xs text-slate-300 space-y-3 h-[40vh] overflow-y-auto pr-2">
+                <p><b>1. Oyunun Amacı:</b> 30 saniye içinde ekranda beliren hedeflere tıklayın. Mavi hedefler 1 puan, Altın hedefler 3 puandır.</p>
+                <p><b>2. Elmas (💎) Değeri:</b> 1 Elmas = 1 TL değerindedir.</p>
+                <p><b>3. Kesinti ve Ödül:</b> Sistem her odada kazanan ödülden %25 komisyon keser. Kalan miktar kazanana aktarılır.</p>
+                <p><b>4. Çevrim Şartı:</b> Çekim yapabilmek için yatırdığınız tutar kadar oyun oynamalısınız.</p>
+                <p><b>5. Şifreli Odalar:</b> Sadece şifreyi bilen oyuncular bu odalara girebilir.</p>
+                <p><b>6. Lig Bonusları:</b> Oyun oynadıkça XP kazanıp lig atlarsınız. Liginiz yükseldikçe %40'a varan ekstra bonuslar kazanırsınız.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-black font-orbitron text-purple-400">TOP 10</h2>
+                <button onclick="closeModal('leaderboard-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="leaderboard-list" class="space-y-2 max-h-[50vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="profile-page" class="page">
+        <button onclick="showPage('lobby-page')" class="mb-6 text-slate-400"><i class="fa-solid fa-arrow-left mr-2"></i>Lobiye Dön</button>
+        <h2 class="text-2xl font-black font-orbitron text-blue-400 mb-6">PROFİL</h2>
+        
+        <div class="stat-card mb-4 border-yellow-500/50">
+            <h3 class="text-xs font-bold text-yellow-400 mb-2">Davet Kodun</h3>
+            <div class="bg-black/50 p-3 rounded-xl text-center">
+                <span id="prof-ref-code" class="text-xl font-black font-orbitron text-yellow-400">YÜKLENİYOR</span>
+            </div>
+            <p class="text-[10px] text-slate-300 mt-2 text-center">Bu kodla kayıt olan arkadaşının yapacağı <b class="text-yellow-400">ilk 3 yüklemeden %10 Bonus</b> kazan!</p>
+        </div>
+        
+        <div class="stat-card mb-4 border-purple-500/30">
+            <h3 class="text-xs font-bold text-purple-400 mb-3">Son Maçlarım</h3>
+            <div id="prof-history-list" class="space-y-2 max-h-[150px] overflow-y-auto pr-1"></div>
+        </div>
+        
+        <div class="stat-card mb-4">
+            <h3 class="text-xs font-bold text-blue-400 mb-3">Giriş Bilgileri</h3>
+            <p class="text-[10px] text-slate-400 mb-1">E-Posta</p>
+            <input id="prof-email" type="email" class="input-field mb-2">
+            <p class="text-[10px] text-slate-400 mb-1">Yeni Şifre</p>
+            <input id="prof-pass" type="password" class="input-field">
+        </div>
+        
+        <div class="stat-card mb-6">
+            <h3 class="text-xs font-bold text-emerald-400 mb-3">İletişim & IBAN</h3>
+            <p class="text-[10px] text-slate-400 mb-1">Telefon</p>
+            <input id="prof-phone" type="tel" class="input-field mb-2">
+            <p class="text-[10px] text-slate-400 mb-1">IBAN</p>
+            <input id="prof-iban" type="text" class="input-field">
+        </div>
+        
+        <button onclick="saveUserProfile()" class="w-full bg-blue-600 py-4 rounded-xl font-black">KAYDET</button>
+    </div>
+
+    <div id="deposit-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-black font-orbitron text-blue-400">ELMAS AL</h2>
+                <button onclick="closeModal('deposit-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <input id="dep-amount" type="number" oninput="calcBonus()" placeholder="Örn: 1000" class="input-field text-lg font-bold mb-2">
+            <div class="bg-blue-500/10 p-3 rounded-xl border border-blue-500/20 mb-4 text-xs">
+                <p class="flex justify-between">Tutar: <span id="dep-base">0 💎</span></p>
+                <p class="flex justify-between text-green-400">Sistem Bonusu: <span id="dep-sys-bonus">+0 💎</span></p>
+                <p class="flex justify-between text-purple-400 font-bold">Lig Bonusu: <span id="dep-league-bonus">+0 💎</span></p>
+                <hr class="my-2 border-slate-700">
+                <p class="flex justify-between font-black text-white">TOPLAM: <span id="dep-total">0 💎</span></p>
+            </div>
+            <button onclick="submitDeposit()" class="w-full bg-blue-600 py-3 rounded-xl font-bold">TALEBİ GÖNDER</button>
+        </div>
+    </div>
+
+    <div id="withdraw-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-black font-orbitron text-emerald-400">BOZDUR</h2>
+                <button onclick="closeModal('withdraw-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="wager-warning" class="bg-red-500/20 border border-red-500 p-3 rounded-xl mb-4 hidden text-xs font-bold text-red-400 text-center">
+                ÇEVRİM ŞARTI EKSİK! <br><span id="wager-amount" class="text-white">0</span> 💎 daha oynamalısınız.
+            </div>
+            <p class="text-[10px] text-slate-400 mb-4">Sadece açılış saatleri dışında bozdurma yapabilirsiniz.</p>
+            <input id="w-amount" type="number" placeholder="Miktar (💎)" class="input-field mb-4 text-lg font-bold">
+            <button onclick="submitWithdraw()" class="w-full bg-emerald-600 py-3 rounded-xl font-bold text-sm">TALEBİ OLUŞTUR</button>
+        </div>
+    </div>
+
+    <div id="chat-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-4 flex flex-col h-[70vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-black font-orbitron text-blue-400">SOHBET</h2>
+                <button onclick="closeModal('chat-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="chat-messages" class="chat-box flex-1"></div>
+            <div class="flex gap-2 mt-2">
+                <input id="chat-input" placeholder="Mesaj..." class="input-field mb-0">
+                <button onclick="sendChatMessage()" class="bg-blue-600 px-4 rounded-xl"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="matchmaking-overlay" class="modal">
+        <div class="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-6"></div>
+        <h2 class="text-2xl font-black font-orbitron">ARANIYOR...</h2>
+        <p id="match-room-info" class="text-blue-400 text-xs font-bold mb-10"></p>
+        <button onclick="cancelMatchmaking()" class="glass border-red-500/30 text-red-500 px-10 py-3 rounded-xl text-xs font-black">İPTAL ET</button>
     </div>
 
     <div id="game-page" class="page">
-        <div class="flex justify-between items-center mb-4">
-            <div class="text-center"><p class="text-[8px] text-gray-500 uppercase">SEN</p><span id="my-score" class="text-4xl font-black">0</span></div>
-            <div class="text-center text-red-600"><p class="text-[8px] uppercase">SÜRE</p><span id="game-time" class="text-2xl font-black">30</span></div>
-            <div class="text-center"><p id="opp-name" class="text-[8px] text-gray-500 uppercase">RAKİP</p><span id="opp-score" class="text-4xl font-black">0</span></div>
-        </div>
-        <div id="game-area"></div>
-        <div class="flex justify-around mt-10">
-            <button onclick="sendEmoji('🔥')" class="text-3xl">🔥</button>
-            <button onclick="sendEmoji('😂')" class="text-3xl">😂</button>
-            <button onclick="sendEmoji('😡')" class="text-3xl">😡</button>
-        </div>
-    </div>
-
-    <div id="deposit-modal" class="fixed inset-0 bg-black/90 z-[150] hidden flex-col justify-center items-center p-5">
-        <div class="card w-full max-w-xs">
-            <h2 class="font-black mb-4">ELMAS YÜKLE</h2>
-            <input id="dep-amount" type="number" placeholder="Miktar" class="input-field">
-            <button onclick="submitDeposit()" class="btn btn-blue text-sm">TALEP GÖNDER</button>
-            <button onclick="closeModal('deposit-modal')" class="w-full mt-4 text-xs text-gray-500">KAPAT</button>
-        </div>
-    </div>
-
-    <script>
-        const firebaseConfig = { 
-            apiKey: "AIzaSyCpBrkM6Yh__FXhc8aznEp1G2AqMgxr_iE", 
-            authDomain: "arenav14-8ad95.firebaseapp.com", 
-            projectId: "arenav14-8ad95", 
-            storageBucket: "arenav14-8ad95.firebasestorage.app", 
-            messagingSenderId: "818899825621", 
-            appId: "1:818899825621:web:a51cd631c943863fcb435c", 
-            databaseURL: "https://arenav14-8ad95-default-rtdb.firebaseio.com" 
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(); const db = firebase.database();
-
-        const bots = ["Arda_01", "Selin_X", "Murat_Bey", "Ceren_Ada", "Hakan_TR", "Gamze_33", "Mert_Aslan", "Polat_V"];
-        let uUid, uData, isS = false, isP = false, gId, mKey, curRoom;
-        let tLeft = 30, gInt, tInt;
-
-        function handleLogin() {
-            const e = document.getElementById('l-email').value; const p = document.getElementById('l-pass').value;
-            auth.signInWithEmailAndPassword(e, p).catch(() => showToast("Hata!", "error"));
-        }
-
-        function logout() { auth.signOut().then(() => location.reload()); }
-
-        function startLobby() {
-            uUid = auth.currentUser.uid;
-            showPage('lobby-page');
-            db.ref('users/' + uUid).on('value', s => {
-                uData = s.val();
-                if(uData) {
-                    document.getElementById('display-name').innerText = uData.username;
-                    document.getElementById('user-diamonds').innerText = (uData.diamonds || 0).toLocaleString();
-                }
-            });
-            db.ref('system/rooms').on('value', s => {
-                let h = ''; s.forEach(c => {
-                    const r = c.val();
-                    h += `<div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}')" class="card flex justify-between items-center active:scale-95 cursor-pointer"><div><p class="font-black text-sm uppercase">${r.name}</p><p class="text-[10px] text-blue-500">${r.entryFee} 💎</p></div><i class="fa-solid fa-play text-gray-700"></i></div>`;
-                });
-                document.getElementById('rooms-list').innerHTML = h;
-            });
-            db.ref('system/active_players/' + uUid + '/game').on('value', s => { if(s.val() && !isP) startGame(s.val()); });
-        }
-
-        function joinMatch(rid, entry, reward, name) {
-            if(isS || isP) return;
-            if((uData.diamonds || 0) < entry) return showToast("Yetersiz Bakiye", "error");
-            isS = true; curRoom = { rid, entry, reward };
-            db.ref('users/' + uUid + '/diamonds').transaction(v => v - entry);
-            document.getElementById('match-overlay').style.display = 'flex';
-            document.getElementById('room-info').innerText = name;
-            
-            // 4 saniye sonra kimse gelmezse botu salla
-            setTimeout(() => { if(isS && !isP) startBotGame(entry, reward); }, 4000);
-        }
-
-        function startBotGame(entry, reward) {
-            const gid = 'bot_' + Date.now();
-            const bN = bots[Math.floor(Math.random() * bots.length)];
-            db.ref('system/games/' + gid).set({
-                p1: uUid, p1Name: uData.username, p1Score: 0,
-                p2: 'BOT', p2Name: bN, p2Score: 0,
-                entry, reward, status: 'playing', isBot: true
-            }).then(() => db.ref('system/active_players/' + uUid + '/game').set(gid));
-        }
-
-        function cancelMatch() {
-            if(!isS) return;
-            db.ref('users/' + uUid + '/diamonds').transaction(v => (v || 0) + curRoom.entry);
-            location.reload();
-        }
-
-        function startGame(gid) {
-            isP = true; isS = false; gId = gid;
-            document.getElementById('match-overlay').style.display = 'none';
-            showPage('game-page'); tLeft = 30;
-
-            db.ref('system/games/' + gid).on('value', s => {
-                const g = s.val(); if(!g) return;
-                mKey = (uUid === g.p1) ? 'p1Score' : 'p2Score';
-                document.getElementById('my-score').innerText = g[mKey];
-                document.getElementById('opp-score').innerText = (mKey === 'p1Score') ? g.p2Score : g.p1Score;
-                document.getElementById('opp-name').innerText = (mKey === 'p1Score') ? g.p2Name : g.p1Name;
-            });
-
-            gInt = setInterval(() => {
-                tLeft--; document.getElementById('game-time').innerText = tLeft;
-                if(tLeft <= 0) finishGame();
-                // BOT SİNSİ PUAN KAZANMA
-                db.ref('system/games/'+gid).once('value', sn => {
-                    const g = sn.val();
-                    if(g && g.isBot && Math.random() < 0.35) {
-                        db.ref('system/games/'+gid+'/p2Score').transaction(v => v + 1);
-                    }
-                });
-            }, 1000);
-            tInt = setInterval(spawn, 800);
-        }
-
-        function spawn() {
-            const a = document.getElementById('game-area'); const t = document.createElement('div');
-            const isG = Math.random() < 0.15; t.className = isG ? 'target golden' : 'target';
-            t.style.left = Math.random() * (a.clientWidth - 50) + 'px';
-            t.style.top = Math.random() * (a.clientHeight - 50) + 'px';
-            t.onclick = () => { db.ref('system/games/' + gId + '/' + mKey).transaction(v => v + (isG ? 3 : 1)); t.remove(); };
-            a.appendChild(t); setTimeout(() => t.remove(), 1000);
-        }
-
-        function finishGame() {
-            clearInterval(gInt); clearInterval(tInt);
-            db.ref('system/games/' + gId).once('value', s => {
-                let g = s.val(); if(!g) return;
-                let mS = g[mKey]; let oS = (mKey === 'p1Score') ? g.p2Score : g.p1Score;
-                
-                // %80 BOT GALİBİYETİ (HİSSETTİRMEDEN)
-                if(g.isBot && Math.random() < 0.80 && mS >= oS) { oS = mS + 1; }
-
-                const win = mS > oS;
-                if(win) { db.ref('users/' + uUid + '/diamonds').transaction(v => (v || 0) + g.reward); }
-                else if(g.isBot) { db.ref('system/accounting/commission').transaction(v => (v || 0) + (g.entry * 2)); }
-                
-                db.ref('system/active_players/' + uUid).remove(); isP = false;
-                setTimeout(() => { showPage('lobby-page'); showToast(win ? "KAZANDIN" : "KAYBETTİN", win ? "success" : "error"); }, 1500);
-            });
-        }
-
-        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
-        function showToast(m, t) {
-            const c = document.getElementById('toast-container');
-            const e = document.createElement('div'); e.className = `p-3 px-10 rounded-full font-bold text-xs ${t=='success'?'bg-blue-600':'bg-red-600'}`;
-            e.innerText = m; c.appendChild(e); setTimeout(() => e.remove(), 2500);
-        }
-        function submitDeposit() { const a = document.getElementById('dep-amount').value; if(a) { db.ref('system/deposit_requests').push({ uid: uUid, name: uData.username, amount: parseInt(a) }); closeModal('deposit-modal'); showToast("Talep Gönderildi", "success"); } }
-
-        auth.onAuthStateChanged(u => { if(u) startLobby(); else showPage('auth-page'); });
-    </script>
-</body>
-</html>
+        <div class="flex flex-col h-full relative">
+            <div class="flex justify-between items-center mb-2 glass p-4 rounded-3xl z-10">
+                <div class="text-center w-1/3 text-blue-400 text-[9px] font-bold">
+                    Sen<br><span id="my-score" class="text-4xl font-black text-white">0</span>
+                </div>
+                <div class="text-center w-1/3 border-x border-slate-700/50 text-red-500 text-[9px] font-bold">
+                    Süre<br><span id="game-time" class="text-3xl font-orbitron">30</span>
+                </div>
+                <div class="text-center w-1/3 text-red-400 text-[9px] font-bold">
+                    <span id="opp-name">Rakip</span><br><span id="opp-score" class="text-4xl font-black te
