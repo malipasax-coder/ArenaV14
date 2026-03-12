@@ -64,9 +64,21 @@
         .wa-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background-color: #25D366; color: white; border-radius: 50px; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0px 0px 15px rgba(37, 211, 102, 0.5); z-index: 100; cursor: pointer; }
         
         #maintenance-overlay { z-index: 9999; background: #020617; }
+
+        /* YENİ: Modern Bildirim (Toast) Sistemi CSS */
+        #toast-container { position: fixed; top: 20px; right: 20px; left: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; align-items: center; }
+        .toast { padding: 14px 24px; border-radius: 16px; font-size: 12px; font-weight: bold; color: white; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); transform: translateY(-150%); animation: dropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: auto; max-width: 350px; width: 100%; }
+        .toast.success { background: linear-gradient(135deg, #059669, #10b981); border: 1px solid #34d399; }
+        .toast.error { background: linear-gradient(135deg, #e11d48, #f43f5e); border: 1px solid #fb7185; }
+        .toast.info { background: linear-gradient(135deg, #2563eb, #3b82f6); border: 1px solid #60a5fa; }
+        .toast.warning { background: linear-gradient(135deg, #d97706, #f59e0b); border: 1px solid #fbbf24; color: #fff; }
+        @keyframes dropIn { to { transform: translateY(0); } }
+        @keyframes fadeOutUp { to { transform: translateY(-150%); opacity: 0; } }
     </style>
 </head>
 <body>
+
+    <div id="toast-container"></div>
 
     <div id="maintenance-overlay" class="modal hidden-element text-center">
         <i class="fa-solid fa-hammer text-6xl text-yellow-500 mb-6 animate-bounce"></i>
@@ -586,6 +598,26 @@
         let lastEmojiTime = 0; 
         let isTourneyEnrolled = false;
 
+        // YENİ: Toast Bildirim Fonksiyonu
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = 'fa-circle-info';
+            if(type === 'success') icon = 'fa-circle-check';
+            if(type === 'error') icon = 'fa-circle-exclamation';
+            if(type === 'warning') icon = 'fa-triangle-exclamation';
+            
+            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOutUp 0.4s forwards';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
         function getLevelInfo(xpTotal) {
             let xp = xpTotal || 0; 
             let lvl = 1; 
@@ -642,13 +674,13 @@
         }
 
         function buyColor(colorHex, price, colorName) {
-            if((userData.diamonds||0) < price) { return alert("Yetersiz bakiye!"); }
-            if(userData.chatColor === colorHex) { return alert("Zaten bu renge sahipsin!"); }
+            if((userData.diamonds||0) < price) { return showToast("Yetersiz bakiye!", "error"); }
+            if(userData.chatColor === colorHex) { return showToast("Zaten bu renge sahipsin!", "warning"); }
             
             if(confirm(`${colorName} rengini ${price} Elmas karşılığında satın almak istiyor musun?`)) {
                 db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return v - price; });
                 db.ref('users/' + currentUserUid + '/chatColor').set(colorHex);
-                alert("Satın alma başarılı! Artık isminin yanında VIP elmas görünecek.");
+                showToast("Satın alma başarılı! Artık isminin yanında VIP elmas görünecek.", "success");
                 closeModal('store-modal');
             }
         }
@@ -669,38 +701,38 @@
         }
         function openSupport() { 
             if(adminWhatsappNum) { window.open(`https://wa.me/${adminWhatsappNum}`, '_blank'); } 
-            else { alert("Destek çevrimdışı."); }
+            else { showToast("Destek çevrimdışı.", "warning"); }
         }
 
         function handleLogin() {
             const u = document.getElementById('l-email').value.trim();
             const p = document.getElementById('l-pass').value;
-            if(!u || !p) { return alert("Lütfen E-posta ve şifre girin!"); }
+            if(!u || !p) { return showToast("Lütfen E-posta ve şifre girin!", "warning"); }
             auth.signInWithEmailAndPassword(u.includes('@') ? u : u + "@a.v14", p).then(function() { 
                 db.ref('users/'+auth.currentUser.uid).once('value', function(s) { 
                     const uData = s.val();
-                    if(uData && uData.status === 'banned') { auth.signOut(); alert("Banlı Hesap!"); } 
+                    if(uData && uData.status === 'banned') { auth.signOut(); showToast("Hesabınız banlanmıştır!", "error"); } 
                     else if(uData && (uData.role === 'mod' || uData.role === 'admin')) { isAdmin = true; document.getElementById('wa-btn').classList.add('hidden-element'); startAdmin(); } 
                     else { isAdmin = false; startLobby(); }
                 }); 
-            }).catch(function() { alert("E-posta veya şifre hatalı!"); });
+            }).catch(function() { showToast("E-posta veya şifre hatalı!", "error"); });
         }
         
         function handleRegister() { 
             const n = document.getElementById('r-name').value; const e = document.getElementById('r-email').value; const p = document.getElementById('r-pass').value; const ref = document.getElementById('r-ref').value.toUpperCase(); const t = document.getElementById('r-terms').checked;
-            if(!n || !e || p.length < 6 || !t) { return alert("Bilgileri eksiksiz doldurun ve sözleşmeyi onaylayın!"); }
+            if(!n || !e || p.length < 6 || !t) { return showToast("Bilgileri eksiksiz doldurun ve sözleşmeyi onaylayın!", "warning"); }
             auth.createUserWithEmailAndPassword(e, p).then(function(r) { 
                 const uid = r.user.uid; const rc = Math.random().toString(36).substring(7).toUpperCase();
                 db.ref('users/'+uid).set({ username: n, email: e, diamonds: 0, wagerNeeded: 0, wins: 0, xp: 0, status: 'active', refCode: rc, depositCount: 0, role: 'user' });
                 if(ref) { db.ref('users').orderByChild('refCode').equalTo(ref).once('value', function(s) { if(s.exists()) { const inviterUid = Object.keys(s.val())[0]; db.ref('users/' + uid).update({ invitedBy: inviterUid }); } }); }
-                alert("Kayıt Başarılı! Giriş yapabilirsiniz."); toggleAuthMode('login');
-            }).catch(function() { alert("Kayıt Hatası! Bu mail kullanılıyor olabilir."); });
+                showToast("Kayıt Başarılı! Giriş yapabilirsiniz.", "success"); toggleAuthMode('login');
+            }).catch(function() { showToast("Kayıt Hatası! Bu mail kullanılıyor olabilir.", "error"); });
         }
         
         function forgotPassword() { 
             const e = document.getElementById('l-email').value; 
-            if(!e || !e.includes('@')) { return alert("Lütfen önce E-Posta kutusuna mailinizi yazın, sonra tıklayın."); }
-            auth.sendPasswordResetEmail(e).then(function() { alert("Sıfırlama linki gönderildi!"); }).catch(function() { alert("Hesap bulunamadı."); }); 
+            if(!e || !e.includes('@')) { return showToast("Lütfen önce E-Posta kutusuna mailinizi yazın, sonra tıklayın.", "warning"); }
+            auth.sendPasswordResetEmail(e).then(function() { showToast("Sıfırlama linki gönderildi!", "success"); }).catch(function() { showToast("Hesap bulunamadı.", "error"); }); 
         }
 
         function checkTournamentTime() { 
@@ -722,15 +754,15 @@
             db.ref('system/rooms').on('value', function(s) { let h = ''; s.forEach(function(c) { const r = c.val(); const passTxt = r.password ? ` <span class="text-red-400">(Şifre: ${r.password})</span>` : ''; h += `<div class="flex justify-between text-[9px] bg-slate-800 p-1 mb-1"><span>${r.name} (${r.entryFee})${passTxt}</span><button onclick="db.ref('system/rooms/${c.key}').remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div>`; }); document.getElementById('admin-rooms-list').innerHTML = h; });
         }
         
-        function updateAnnouncement() { db.ref('system/config/announcement').set(document.getElementById('admin-announcement').value); alert("Duyuru yayınlandı!"); }
-        function updateWhatsapp() { db.ref('system/config/whatsapp').set(document.getElementById('admin-whatsapp').value); alert("Numara kaydedildi!"); }
-        function updateDailyReward() { db.ref('system/config/dailyReward').set(parseInt(document.getElementById('admin-daily-amount').value)); alert("Kaydedildi!"); }
-        function updateSystemBonus() { db.ref('system/config/bonusRate').set(parseInt(document.getElementById('admin-bonus-rate').value)); alert("Kaydedildi!"); }
-        function updateTournament() { const s = document.getElementById('admin-tour-start').value; const e = document.getElementById('admin-tour-end').value; if(s && e) { db.ref('system/config/tournament').set({start: s, end: e}); alert("Saatler güncellendi!"); } }
+        function updateAnnouncement() { db.ref('system/config/announcement').set(document.getElementById('admin-announcement').value); showToast("Duyuru yayınlandı!", "success"); }
+        function updateWhatsapp() { db.ref('system/config/whatsapp').set(document.getElementById('admin-whatsapp').value); showToast("Numara kaydedildi!", "success"); }
+        function updateDailyReward() { db.ref('system/config/dailyReward').set(parseInt(document.getElementById('admin-daily-amount').value)); showToast("Kaydedildi!", "success"); }
+        function updateSystemBonus() { db.ref('system/config/bonusRate').set(parseInt(document.getElementById('admin-bonus-rate').value)); showToast("Kaydedildi!", "success"); }
+        function updateTournament() { const s = document.getElementById('admin-tour-start').value; const e = document.getElementById('admin-tour-end').value; if(s && e) { db.ref('system/config/tournament').set({start: s, end: e}); showToast("Saatler güncellendi!", "success"); } }
         
         function createNewRoom() { 
             const n = document.getElementById('new-room-name').value; const e = parseInt(document.getElementById('new-room-entry').value); const p = document.getElementById('new-room-pass').value.trim();
-            if(n && e) { let roomData = {name: n, entryFee: e, reward: (e*1.5)}; if(p) roomData.password = p; db.ref('system/rooms').push(roomData); alert("Oda başarıyla kuruldu!"); document.getElementById('new-room-name').value = ''; document.getElementById('new-room-entry').value = ''; document.getElementById('new-room-pass').value = ''; } 
+            if(n && e) { let roomData = {name: n, entryFee: e, reward: (e*1.5)}; if(p) roomData.password = p; db.ref('system/rooms').push(roomData); showToast("Oda başarıyla kuruldu!", "success"); document.getElementById('new-room-name').value = ''; document.getElementById('new-room-entry').value = ''; document.getElementById('new-room-pass').value = ''; } 
         }
         
         function approveDeposit(rid, uid, base, total, name) { db.ref(`users/${uid}`).once('value', function(snap) { let u = snap.val(); if(u && u.invitedBy && (u.depositCount || 0) < 3) { let refBonus = Math.floor(base * 0.10); db.ref(`users/${u.invitedBy}/diamonds`).transaction(function(v) { return (v || 0) + refBonus; }); db.ref(`users/${uid}/depositCount`).transaction(function(v) { return (v || 0) + 1; }); } db.ref(`users/${uid}/diamonds`).transaction(function(v) { return (v||0)+total; }); db.ref(`users/${uid}/wagerNeeded`).transaction(function(v) { return (v||0)+total; }); db.ref('system/accounting/totalDeposit').transaction(function(v) { return (v||0)+base; }); db.ref('system/archive').push({ name: name, amount: base, type: 'yatirim', date: new Date().toLocaleString() }); db.ref(`system/deposit_requests/${rid}`).remove(); }); }
@@ -741,7 +773,7 @@
 
         let currentXrayUid = null; 
         function showXray(uid) { currentXrayUid = uid; const u = allUsers[uid]; const l = getLevelInfo(u.xp); document.getElementById('xray-content').innerHTML = ` <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-2"><span class="text-[10px] text-slate-400">Kullanıcı Adı</span><span class="font-bold text-blue-400 uppercase">${u.username}</span></div> <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-3"><span class="text-[10px] text-slate-400">Kayıtlı E-Posta</span><span class="text-[10px] text-white">${u.email}</span></div> <div class="grid grid-cols-2 gap-2 mb-2"><div><label class="text-[9px] text-slate-400">Bakiye (💎)</label><input id="xray-diamonds" type="number" value="${u.diamonds || 0}" class="input-field py-2 text-sm text-cyan-400 font-bold text-center"></div><div><label class="text-[9px] text-slate-400">Çevrim Şartı</label><input id="xray-wager" type="number" value="${u.wagerNeeded || 0}" class="input-field py-2 text-sm text-orange-400 font-bold text-center"></div></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Tecrübe Puanı / XP (Lvl ${l.level})</label><input id="xray-xp" type="number" value="${u.xp || 0}" class="input-field py-2 text-sm text-purple-400 font-bold"></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Telefon Numarası</label><input id="xray-phone" type="text" value="${u.phone || ''}" class="input-field py-2 text-xs"></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Banka IBAN Numarası</label><input id="xray-iban" type="text" value="${u.iban || ''}" class="input-field py-2 text-[10px]"></div>`; const banBtn = document.getElementById('xray-ban-btn'); const saveBtn = document.getElementById('xray-save-btn'); const roleBtn = document.getElementById('xray-role-btn'); if(u.status === 'banned') { banBtn.innerHTML = "<i class='fa-solid fa-unlock mr-2'></i>BAN KALDIR"; banBtn.className = "flex-1 bg-green-600 py-3 rounded-xl font-bold text-xs tracking-widest"; banBtn.onclick = function() { db.ref('users/' + uid + '/status').set('active'); closeModal('xray-modal'); }; } else { banBtn.innerHTML = "<i class='fa-solid fa-gavel mr-2'></i>BANLA"; banBtn.className = "flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs tracking-widest"; banBtn.onclick = function() { db.ref('users/' + uid + '/status').set('banned'); closeModal('xray-modal'); }; } if(u.role === 'mod') { roleBtn.innerHTML = "<i class='fa-solid fa-user-minus mr-2'></i>MODERATÖR YETKİSİNİ AL"; roleBtn.className = "w-full bg-orange-600 py-3 rounded-xl font-bold text-xs tracking-widest mt-2"; roleBtn.onclick = function() { db.ref('users/' + uid + '/role').set('user'); closeModal('xray-modal'); }; } else { roleBtn.innerHTML = "<i class='fa-solid fa-user-shield mr-2'></i>BU ÜYEYİ MODERATÖR YAP"; roleBtn.className = "w-full bg-purple-600 py-3 rounded-xl font-bold text-xs tracking-widest mt-2"; roleBtn.onclick = function() { db.ref('users/' + uid + '/role').set('mod'); closeModal('xray-modal'); }; } saveBtn.onclick = function() { saveXrayData(uid); }; openModal('xray-modal'); }
-        function saveXrayData(uid) { const newDiamonds = parseInt(document.getElementById('xray-diamonds').value) || 0; const newWager = parseInt(document.getElementById('xray-wager').value) || 0; const newXp = parseInt(document.getElementById('xray-xp').value) || 0; const newPhone = document.getElementById('xray-phone').value.trim(); const newIban = document.getElementById('xray-iban').value.trim(); db.ref('users/' + uid).update({ diamonds: newDiamonds, wagerNeeded: newWager, xp: newXp, phone: newPhone, iban: newIban }).then(function() { alert("Üye verileri başarıyla kaydedildi!"); closeModal('xray-modal'); }).catch(function(e) { alert("Kaydetme hatası!"); }); }
+        function saveXrayData(uid) { const newDiamonds = parseInt(document.getElementById('xray-diamonds').value) || 0; const newWager = parseInt(document.getElementById('xray-wager').value) || 0; const newXp = parseInt(document.getElementById('xray-xp').value) || 0; const newPhone = document.getElementById('xray-phone').value.trim(); const newIban = document.getElementById('xray-iban').value.trim(); db.ref('users/' + uid).update({ diamonds: newDiamonds, wagerNeeded: newWager, xp: newXp, phone: newPhone, iban: newIban }).then(function() { showToast("Üye verileri başarıyla kaydedildi!", "success"); closeModal('xray-modal'); }).catch(function(e) { showToast("Kaydetme hatası!", "error"); }); }
 
         function updateTaskUI(tData) {
             const pPct = Math.min(100, (tData.played/3)*100); document.getElementById('task1-bar').style.width = pPct+'%'; document.getElementById('task1-status').innerText = Math.min(3,tData.played)+'/3';
@@ -759,11 +791,10 @@
             if(t[type] >= req && !t[btnId+'_claimed']) {
                 db.ref('users/'+currentUserUid+'/diamonds').transaction(v => (v||0)+reward);
                 db.ref('users/'+currentUserUid+'/tasks/'+btnId+'_claimed').set(true);
-                alert(`Tebrikler! Görevi tamamladın ve ${reward} 💎 kazandın.`);
-            } else { alert("Görev henüz tamamlanmadı!"); }
+                showToast(`Tebrikler! Görevi tamamladın ve ${reward} 💎 kazandın.`, "success");
+            } else { showToast("Görev henüz tamamlanmadı!", "warning"); }
         }
 
-        // --- YENİ TURNUVA (LEADERBOARD) SİSTEMİ ---
         function updateTourneyUI(tData) {
             const btn = document.getElementById('join-tourney-btn');
             const poolEl = document.getElementById('tourney-pool');
@@ -809,14 +840,14 @@
         }
 
         function joinTournament() {
-            if((userData.diamonds||0) < 100) return alert("Yetersiz Bakiye! Turnuva girişi 100 💎");
+            if((userData.diamonds||0) < 100) return showToast("Yetersiz Bakiye! Turnuva girişi 100 💎", "error");
             
             db.ref('users/'+currentUserUid+'/diamonds').transaction(v => v - 100).then(() => {
                 db.ref('system/tournament/players/'+currentUserUid).set({
                     name: userData.username,
                     score: 0
                 });
-                alert("Turnuvaya başarıyla katıldın! Kazandığın her maç puanını artıracak.");
+                showToast("Turnuvaya başarıyla katıldın!", "success");
             });
         }
 
@@ -825,7 +856,7 @@
             
             db.ref('system/tournament/players').once('value', s => {
                 const players = s.val();
-                if(!players) return alert("Turnuvada kimse yok!");
+                if(!players) return showToast("Turnuvada kimse yok!", "warning");
                 
                 const pList = Object.keys(players).map(uid => ({ uid, ...players[uid] })).sort((a,b) => b.score - a.score);
                 const totalPool = pList.length * 100;
@@ -843,12 +874,10 @@
                     db.ref('users/'+pList[2].uid+'/diamonds').transaction(v => (v||0) + thirdPrize);
                 }
                 
-                // Turnuvayı Sıfırla
                 db.ref('system/tournament').set({ status: 'open' });
-                alert("Turnuva bitti! Ödüller dağıtıldı ve sistem sıfırlandı.");
+                showToast("Turnuva bitti! Ödüller dağıtıldı.", "success");
             });
         }
-        // --------------------------------------------------------
 
         function startLobby() {
             currentUserUid = auth.currentUser.uid; 
@@ -896,22 +925,22 @@
             checkTournamentTime();
         }
         
-        function saveUserProfile() { const m = document.getElementById('prof-email').value; const p = document.getElementById('prof-pass').value; const ph = document.getElementById('prof-phone').value; const i = document.getElementById('prof-iban').value; db.ref('users/'+currentUserUid).update({ phone: ph, iban: i, email: m }); if(p.length >= 6) { auth.currentUser.updatePassword(p); } alert("Profil güncellendi!"); showPage('lobby-page'); }
+        function saveUserProfile() { const m = document.getElementById('prof-email').value; const p = document.getElementById('prof-pass').value; const ph = document.getElementById('prof-phone').value; const i = document.getElementById('prof-iban').value; db.ref('users/'+currentUserUid).update({ phone: ph, iban: i, email: m }); if(p.length >= 6) { auth.currentUser.updatePassword(p); } showToast("Profil güncellendi!", "success"); showPage('lobby-page'); }
         function calcBonus() { const a = parseInt(document.getElementById('dep-amount').value) || 0; const sb = (a * systemBonusRate) / 100; const lb = (a * currentPlayerLevelInfo.bonus) / 100; document.getElementById('dep-base').innerText = a+" 💎"; document.getElementById('dep-sys-bonus').innerText = "+"+sb+" 💎"; document.getElementById('dep-league-bonus').innerText = "+"+lb+" 💎"; document.getElementById('dep-total').innerText = (a+sb+lb)+" 💎"; }
-        function submitDeposit() { const a = parseInt(document.getElementById('dep-amount').value); if(!a) return; const sb = (a * systemBonusRate) / 100; const lb = (a * currentPlayerLevelInfo.bonus) / 100; db.ref('system/deposit_requests').push({ uid: currentUserUid, name: userData.username, amount: a, total: (a+sb+lb), time: Date.now() }); closeModal('deposit-modal'); alert("Talep başarıyla gönderildi!"); }
-        function openWithdrawModal() { if(isTourActive) { return alert("Şu an maç saatleri içindeyiz, çekim yapılamaz!"); } if((userData.wagerNeeded||0) > 0) { document.getElementById('wager-warning').classList.remove('hidden'); document.getElementById('wager-amount').innerText = userData.wagerNeeded; } else { document.getElementById('wager-warning').classList.add('hidden'); } openModal('withdraw-modal'); }
-        function submitWithdraw() { const a = parseInt(document.getElementById('w-amount').value); if(!a || a < 100) return alert("Minimum bozdurma tutarı 100 Elmas."); if((userData.wagerNeeded||0) > 0) return alert("Çevrim şartı tamamlanmadı."); if(userData.diamonds < a) return alert("Yetersiz bakiye."); db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return v - a; }); db.ref('system/withdraw_requests').push({ uid: currentUserUid, name: userData.username, amount: a, iban: userData.iban || "-", phone: userData.phone || "-", time: Date.now() }); closeModal('withdraw-modal'); alert("Çekim talebiniz alındı!"); }
-        function claimDailyReward() { const t = new Date().toDateString(); if(userData.lastReward == t) { return alert("Bugün ödülünü zaten aldın!"); } db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v||0) + systemDailyReward; }); db.ref('users/' + currentUserUid + '/lastReward').set(t); alert(`Tebrikler! ${systemDailyReward} 💎 kazandın.`); }
+        function submitDeposit() { const a = parseInt(document.getElementById('dep-amount').value); if(!a) return; const sb = (a * systemBonusRate) / 100; const lb = (a * currentPlayerLevelInfo.bonus) / 100; db.ref('system/deposit_requests').push({ uid: currentUserUid, name: userData.username, amount: a, total: (a+sb+lb), time: Date.now() }); closeModal('deposit-modal'); showToast("Talep başarıyla gönderildi!", "success"); }
+        function openWithdrawModal() { if(isTourActive) { return showToast("Şu an maç saatleri içindeyiz, çekim yapılamaz!", "error"); } if((userData.wagerNeeded||0) > 0) { document.getElementById('wager-warning').classList.remove('hidden'); document.getElementById('wager-amount').innerText = userData.wagerNeeded; } else { document.getElementById('wager-warning').classList.add('hidden'); } openModal('withdraw-modal'); }
+        function submitWithdraw() { const a = parseInt(document.getElementById('w-amount').value); if(!a || a < 100) return showToast("Minimum bozdurma tutarı 100 Elmas.", "error"); if((userData.wagerNeeded||0) > 0) return showToast("Çevrim şartı tamamlanmadı.", "error"); if(userData.diamonds < a) return showToast("Yetersiz bakiye.", "error"); db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return v - a; }); db.ref('system/withdraw_requests').push({ uid: currentUserUid, name: userData.username, amount: a, iban: userData.iban || "-", phone: userData.phone || "-", time: Date.now() }); closeModal('withdraw-modal'); showToast("Çekim talebiniz alındı!", "success"); }
+        function claimDailyReward() { const t = new Date().toDateString(); if(userData.lastReward == t) { return showToast("Bugün ödülünü zaten aldın!", "warning"); } db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v||0) + systemDailyReward; }); db.ref('users/' + currentUserUid + '/lastReward').set(t); showToast(`Tebrikler! Günlük ödülünü aldın.`, "success"); }
         
         function sendChatMessage() { const i = document.getElementById('chat-input'); const t = i.value.trim(); if(t) { db.ref('system/chat').push({ uid: currentUserUid, name: userData.username, text: t, color: userData.chatColor || '' }); i.value = ''; } }
 
         function joinMatch(rid, entry, reward, name, roomPass) { 
             initAudio(); 
-            if(!isTourActive) return alert("Oyun kapalı!");
-            if(isMaintenanceMode && !isAdmin) return alert("Sistem şu an bakım modunda!"); 
+            if(!isTourActive) return showToast("Oyun kapalı!", "warning");
+            if(isMaintenanceMode && !isAdmin) return showToast("Sistem şu an bakım modunda!", "warning"); 
             if(isSearching || isPlaying) return; 
-            if((userData.diamonds||0) < entry) return alert("Yetersiz Bakiye!"); 
-            if(roomPass) { const userPass = prompt(`Lütfen "${name}" odası için şifreyi gir:`); if(userPass !== roomPass) { return alert("Hatalı şifre girdiniz!"); } }
+            if((userData.diamonds||0) < entry) return showToast("Yetersiz Bakiye!", "error"); 
+            if(roomPass) { const userPass = prompt(`Lütfen "${name}" odası için şifreyi gir:`); if(userPass !== roomPass) { return showToast("Hatalı şifre girdiniz!", "error"); } }
             
             isSearching = true; currentMatchRoom = { rid: rid, entry: entry, reward: reward, name: name }; 
             db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) - entry; }).then(function() {
@@ -929,26 +958,32 @@
                                 db.ref('system/active_players/' + data.uid + '/game').set(gid); db.ref('system/active_players/' + data.p2.uid + '/game').set(gid); matchRef.remove(); 
                             }); 
                         } else if(data && data.status === 'waiting' && data.uid === currentUserUid) {} 
-                        else { isSearching = false; db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); closeModal('matchmaking-overlay'); document.getElementById('wa-btn').classList.remove('hidden-element'); alert("Oda dolu."); }
+                        else { isSearching = false; db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); closeModal('matchmaking-overlay'); document.getElementById('wa-btn').classList.remove('hidden-element'); showToast("Oda dolu.", "warning"); }
                     } else { isSearching = false; db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); closeModal('matchmaking-overlay'); }
                 });
             });
         }
         
-        // EŞLEŞME İPTAL GÜVENLİĞİ SAĞLANDI (TRANSACTION)
+        // EŞLEŞME İPTAL DÜZELTİLDİ
         function cancelMatchmaking() { 
             if(!isSearching) return; 
-            const rid = currentMatchRoom.rid; const entry = currentMatchRoom.entry;
+            const rid = currentMatchRoom.rid; 
+            const entry = currentMatchRoom.entry;
             
-            db.ref('system/matchmaking/' + rid).transaction(function(curr) {
-                if (curr && curr.uid === currentUserUid && curr.status === 'waiting') { return null; }
-                return;
-            }, function(error, committed, snapshot) {
-                if(error) { alert("Bağlantı hatası."); }
-                else if(!committed) { alert("Eşleşme zaten tamamlandı veya bulunamadı, iptal edilemez!"); }
-                else {
-                    db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); 
-                    isSearching = false; closeModal('matchmaking-overlay'); document.getElementById('wa-btn').classList.remove('hidden-element');
+            db.ref('system/matchmaking/' + rid).once('value', function(s) {
+                const d = s.val();
+                if(d && d.uid === currentUserUid && d.status === 'waiting') {
+                    db.ref('system/matchmaking/' + rid).remove().then(function() { 
+                        db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); 
+                        isSearching = false; 
+                        closeModal('matchmaking-overlay'); 
+                        document.getElementById('wa-btn').classList.remove('hidden-element'); 
+                        showToast("Eşleşme iptal edildi ve elmasınız iade edildi.", "info");
+                    }).catch(function(error) {
+                        showToast("İptal işlemi başarısız oldu, bağlantınızı kontrol edin.", "error");
+                    });
+                } else { 
+                    showToast("Eşleşme zaten tamamlandı veya bulunamadı, iptal edilemez!", "error"); 
                 }
             });
         }
@@ -1034,13 +1069,11 @@
                 
                 if(myS > oppS) {
                     db.ref('users/' + currentUserUid + '/tasks/won').transaction(v => (v||0) + 1);
-                    // TURNUVA PUANI EKLEME
                     if(isTourneyEnrolled) { db.ref('system/tournament/players/'+currentUserUid+'/score').transaction(v => (v||0) + 1); }
                 }
                 
                 db.ref('users/' + currentUserUid + '/diamonds').transaction(function(cur) { if(myS > oppS) return (cur || 0) + g.reward; if(myS === oppS) return (cur || 0) + g.entry; return cur; }); 
                 
-                // ÇİFT YAZMA ENGELLENDİ: Sadece 1. oyuncu (Kurucu) komisyonu kasaya yazar
                 if(currentUserUid === g.p1 && myS > oppS) { 
                     db.ref('system/accounting/commission').transaction(function(v) { return (v || 0) + cut; }); 
                 } else if (currentUserUid === g.p1 && oppS > myS) {
@@ -1049,7 +1082,11 @@
 
                 db.ref('system/active_players/' + currentUserUid).remove(); 
                 
-                setTimeout(function() { showPage('lobby-page'); document.getElementById('wa-btn').classList.remove('hidden-element'); alert(`${resultText}! (+${xp} XP)`); }, 2000); 
+                setTimeout(function() { 
+                    showPage('lobby-page'); 
+                    document.getElementById('wa-btn').classList.remove('hidden-element'); 
+                    showToast(`${resultText}! (+${xp} XP)`, myS > oppS ? "success" : "info"); 
+                }, 2000); 
             }); 
         }
         
