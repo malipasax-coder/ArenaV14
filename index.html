@@ -44,17 +44,11 @@
         
         @keyframes pop { to { transform: scale(1); } }
         
-        /* YENİ: Emoji Animasyonları */
         @keyframes floatEmoji { 
             0% { transform: translateY(0) scale(1); opacity: 1; } 
             100% { transform: translateY(-150px) scale(2); opacity: 0; } 
         }
         .floating-emoji { position: absolute; font-size: 40px; animation: floatEmoji 1.5s ease-out forwards; pointer-events: none; z-index: 100; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        
-        /* YENİ: Turnuva Ağacı CSS */
-        .bracket-match { background: rgba(15, 23, 42, 0.9); border: 1px solid #3b82f6; border-radius: 8px; padding: 6px; margin-bottom: 8px; text-align: center; font-size: 10px; font-weight: bold; }
-        .bracket-match.empty { border-color: #475569; color: #94a3b8; }
-        .bracket-col { display: flex; flex-direction: column; justify-content: space-around; }
 
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; }
         .modal.flex { display: flex !important; }
@@ -125,9 +119,9 @@
         </div>
 
         <div class="stat-card border-red-500/50 mb-4 bg-red-500/5 text-center">
-            <h3 class="text-xs font-bold text-red-500 mb-2 uppercase tracking-widest"><i class="fa-solid fa-power-off mr-2"></i>Sistem Şalteri</h3>
+            <h3 class="text-xs font-bold text-red-500 mb-2 uppercase tracking-widest"><i class="fa-solid fa-power-off mr-2"></i>Sistem Şalteri & Turnuva</h3>
             <button id="admin-maintenance-btn" onclick="toggleMaintenance()" class="w-full bg-red-600 py-3 rounded-xl font-black text-xs tracking-widest mb-2">BAKIM MODUNU AÇ</button>
-            <button onclick="resetBracket()" class="w-full bg-orange-600 py-3 rounded-xl font-black text-xs tracking-widest">BÜYÜK TURNUVAYI SIFIRLA</button>
+            <button onclick="endTournament()" class="w-full bg-orange-600 py-3 rounded-xl font-black text-xs tracking-widest">TURNUVAYI BİTİR VE ÖDÜLLERİ DAĞIT</button>
         </div>
         
         <div class="stat-card border-l-4 border-yellow-500 mb-4 bg-yellow-500/5">
@@ -285,8 +279,8 @@
             <button onclick="openModal('tasks-modal')" class="stat-card flex items-center justify-center gap-2 bg-indigo-500/10 border-indigo-500/30 active:scale-95 p-3">
                 <i class="fa-solid fa-list-check text-indigo-500 text-lg"></i><span class="text-[10px] font-bold text-indigo-400">GÜNLÜK GÖREVLER</span>
             </button>
-            <button onclick="openModal('bracket-modal')" class="stat-card flex items-center justify-center gap-2 bg-orange-500/10 border-orange-500/30 active:scale-95 p-3">
-                <i class="fa-solid fa-sitemap text-orange-500 text-lg"></i><span class="text-[10px] font-bold text-orange-400">TURNUVA AĞACI</span>
+            <button onclick="openModal('tourney-modal')" class="stat-card flex items-center justify-center gap-2 bg-orange-500/10 border-orange-500/30 active:scale-95 p-3">
+                <i class="fa-solid fa-trophy text-orange-500 text-lg"></i><span class="text-[10px] font-bold text-orange-400">TURNUVA LİGİ</span>
             </button>
         </div>
 
@@ -346,31 +340,27 @@
         </div>
     </div>
 
-    <div id="bracket-modal" class="modal">
-        <div class="glass w-full max-w-sm rounded-3xl p-6 border-orange-500/30">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-black font-orbitron text-orange-400"><i class="fa-solid fa-sitemap mr-2"></i>ARENA KUPASI</h2>
-                <button onclick="closeModal('bracket-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+    <div id="tourney-modal" class="modal">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 border-orange-500/30 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="font-black font-orbitron text-orange-400"><i class="fa-solid fa-trophy mr-2"></i>ARENA LİGİ</h2>
+                <button onclick="closeModal('tourney-modal')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <p class="text-[9px] text-slate-400 mb-4 text-center">8 Kişilik Büyük Ödül Turnuvası! Fikstür dolduğunda şampiyon belli olur.</p>
             
-            <button id="join-tourney-btn" onclick="joinTournament()" class="w-full bg-orange-600 py-2 rounded-xl text-xs font-bold mb-4 animate-pulse hidden">100 💎 İLE TURNUVAYA KATIL</button>
+            <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-xl mb-4 text-center">
+                <p class="text-[10px] text-slate-300">Giriş Ücreti: <b class="text-orange-400">100 💎</b></p>
+                <p class="text-[9px] text-slate-400 mt-1">Katıldıktan sonra kazandığın her maç sana <b class="text-white">+1 Puan</b> kazandırır. Turnuva bitiminde havuzdaki ödül ilk 3'e paylaştırılır!</p>
+                <div class="mt-2 text-xs font-black text-yellow-400 border-t border-orange-500/20 pt-2">
+                    GÜNCEL ÖDÜL HAVUZU: <span id="tourney-pool">0</span> 💎
+                </div>
+            </div>
             
-            <div class="flex justify-between w-full h-48 bg-black/40 rounded-xl p-2 border border-slate-700 relative">
-                <div class="bracket-col w-[30%]" id="bracket-qf">
-                    <div class="bracket-match empty" id="bm-1">Bekleniyor..</div>
-                    <div class="bracket-match empty" id="bm-2">Bekleniyor..</div>
-                    <div class="bracket-match empty" id="bm-3">Bekleniyor..</div>
-                    <div class="bracket-match empty" id="bm-4">Bekleniyor..</div>
-                </div>
-                <div class="bracket-col w-[30%]" id="bracket-sf">
-                    <div class="bracket-match empty" id="bm-5">?</div>
-                    <div class="bracket-match empty" id="bm-6">?</div>
-                </div>
-                <div class="bracket-col w-[30%] items-center justify-center">
-                    <i class="fa-solid fa-trophy text-yellow-500 text-2xl mb-2 drop-shadow-[0_0_10px_rgba(234,179,8,0.8)]"></i>
-                    <div class="bracket-match empty w-full border-yellow-500 text-yellow-400" id="bm-7">ŞAMPİYON</div>
-                </div>
+            <button id="join-tourney-btn" onclick="joinTournament()" class="w-full bg-orange-600 py-3 rounded-xl text-xs font-bold mb-4 animate-pulse">TURNUVAYA KATIL (100 💎)</button>
+            
+            <div class="flex-1 overflow-y-auto">
+                <h3 class="text-[10px] font-bold text-slate-400 mb-2 border-b border-slate-700 pb-1">CANLI SIRALAMA</h3>
+                <div id="tourney-leaderboard" class="space-y-2 pr-1">
+                    </div>
             </div>
         </div>
     </div>
@@ -545,7 +535,6 @@
     </div>
 
     <script>
-        // KAPALI KAYNAK GÜVENLİĞİ
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
         document.onkeydown = function(e) { 
             if(e.keyCode === 123 || e.keyCode === 115) return false; 
@@ -593,9 +582,9 @@
         let isMuted = false;
         let isMaintenanceMode = false;
         
-        // YENİ: Görev ve Emoji State'leri
-        let sessionGolds = 0; // Bu maç vurulan altın hedef
-        let lastEmojiTime = 0; // Cooldown için
+        let sessionGolds = 0; 
+        let lastEmojiTime = 0; 
+        let isTourneyEnrolled = false;
 
         function getLevelInfo(xpTotal) {
             let xp = xpTotal || 0; 
@@ -754,7 +743,6 @@
         function showXray(uid) { currentXrayUid = uid; const u = allUsers[uid]; const l = getLevelInfo(u.xp); document.getElementById('xray-content').innerHTML = ` <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-2"><span class="text-[10px] text-slate-400">Kullanıcı Adı</span><span class="font-bold text-blue-400 uppercase">${u.username}</span></div> <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-3"><span class="text-[10px] text-slate-400">Kayıtlı E-Posta</span><span class="text-[10px] text-white">${u.email}</span></div> <div class="grid grid-cols-2 gap-2 mb-2"><div><label class="text-[9px] text-slate-400">Bakiye (💎)</label><input id="xray-diamonds" type="number" value="${u.diamonds || 0}" class="input-field py-2 text-sm text-cyan-400 font-bold text-center"></div><div><label class="text-[9px] text-slate-400">Çevrim Şartı</label><input id="xray-wager" type="number" value="${u.wagerNeeded || 0}" class="input-field py-2 text-sm text-orange-400 font-bold text-center"></div></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Tecrübe Puanı / XP (Lvl ${l.level})</label><input id="xray-xp" type="number" value="${u.xp || 0}" class="input-field py-2 text-sm text-purple-400 font-bold"></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Telefon Numarası</label><input id="xray-phone" type="text" value="${u.phone || ''}" class="input-field py-2 text-xs"></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Banka IBAN Numarası</label><input id="xray-iban" type="text" value="${u.iban || ''}" class="input-field py-2 text-[10px]"></div>`; const banBtn = document.getElementById('xray-ban-btn'); const saveBtn = document.getElementById('xray-save-btn'); const roleBtn = document.getElementById('xray-role-btn'); if(u.status === 'banned') { banBtn.innerHTML = "<i class='fa-solid fa-unlock mr-2'></i>BAN KALDIR"; banBtn.className = "flex-1 bg-green-600 py-3 rounded-xl font-bold text-xs tracking-widest"; banBtn.onclick = function() { db.ref('users/' + uid + '/status').set('active'); closeModal('xray-modal'); }; } else { banBtn.innerHTML = "<i class='fa-solid fa-gavel mr-2'></i>BANLA"; banBtn.className = "flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs tracking-widest"; banBtn.onclick = function() { db.ref('users/' + uid + '/status').set('banned'); closeModal('xray-modal'); }; } if(u.role === 'mod') { roleBtn.innerHTML = "<i class='fa-solid fa-user-minus mr-2'></i>MODERATÖR YETKİSİNİ AL"; roleBtn.className = "w-full bg-orange-600 py-3 rounded-xl font-bold text-xs tracking-widest mt-2"; roleBtn.onclick = function() { db.ref('users/' + uid + '/role').set('user'); closeModal('xray-modal'); }; } else { roleBtn.innerHTML = "<i class='fa-solid fa-user-shield mr-2'></i>BU ÜYEYİ MODERATÖR YAP"; roleBtn.className = "w-full bg-purple-600 py-3 rounded-xl font-bold text-xs tracking-widest mt-2"; roleBtn.onclick = function() { db.ref('users/' + uid + '/role').set('mod'); closeModal('xray-modal'); }; } saveBtn.onclick = function() { saveXrayData(uid); }; openModal('xray-modal'); }
         function saveXrayData(uid) { const newDiamonds = parseInt(document.getElementById('xray-diamonds').value) || 0; const newWager = parseInt(document.getElementById('xray-wager').value) || 0; const newXp = parseInt(document.getElementById('xray-xp').value) || 0; const newPhone = document.getElementById('xray-phone').value.trim(); const newIban = document.getElementById('xray-iban').value.trim(); db.ref('users/' + uid).update({ diamonds: newDiamonds, wagerNeeded: newWager, xp: newXp, phone: newPhone, iban: newIban }).then(function() { alert("Üye verileri başarıyla kaydedildi!"); closeModal('xray-modal'); }).catch(function(e) { alert("Kaydetme hatası!"); }); }
 
-        // --- YENİ EKLENEN SİSTEMLER (Görev ve Bracket) YÖNETİMİ ---
         function updateTaskUI(tData) {
             const pPct = Math.min(100, (tData.played/3)*100); document.getElementById('task1-bar').style.width = pPct+'%'; document.getElementById('task1-status').innerText = Math.min(3,tData.played)+'/3';
             const btn1 = document.getElementById('task1-btn'); if(tData.task1_claimed) { btn1.innerText = "ALINDI"; btn1.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn1.onclick = null; } else if(tData.played >= 3) { btn1.className = "w-full bg-indigo-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse"; }
@@ -775,45 +763,89 @@
             } else { alert("Görev henüz tamamlanmadı!"); }
         }
 
-        function updateBracketUI(bData) {
-            const b = bData || { p1:'', p2:'', p3:'', p4:'', p5:'', p6:'', p7:'', status:'closed' };
-            document.getElementById('bm-1').innerText = b.p1 || 'Bekleniyor..'; document.getElementById('bm-1').className = b.p1 ? "bracket-match" : "bracket-match empty";
-            document.getElementById('bm-2').innerText = b.p2 || 'Bekleniyor..'; document.getElementById('bm-2').className = b.p2 ? "bracket-match" : "bracket-match empty";
-            document.getElementById('bm-3').innerText = b.p3 || 'Bekleniyor..'; document.getElementById('bm-3').className = b.p3 ? "bracket-match" : "bracket-match empty";
-            document.getElementById('bm-4').innerText = b.p4 || 'Bekleniyor..'; document.getElementById('bm-4').className = b.p4 ? "bracket-match" : "bracket-match empty";
-            document.getElementById('bm-5').innerText = b.p5 || '?'; document.getElementById('bm-5').className = b.p5 ? "bracket-match border-orange-500" : "bracket-match empty";
-            document.getElementById('bm-6').innerText = b.p6 || '?'; document.getElementById('bm-6').className = b.p6 ? "bracket-match border-orange-500" : "bracket-match empty";
-            document.getElementById('bm-7').innerText = b.p7 || 'ŞAMPİYON';
-            
+        // --- YENİ TURNUVA (LEADERBOARD) SİSTEMİ ---
+        function updateTourneyUI(tData) {
             const btn = document.getElementById('join-tourney-btn');
-            if(b.status === 'open' && !b.p4) {
-                // Eğer kullanıcı zaten katıldıysa butonu gizle
-                if(b.p1==userData.username || b.p2==userData.username || b.p3==userData.username) { btn.classList.add('hidden'); }
-                else { btn.classList.remove('hidden'); }
-            } else { btn.classList.add('hidden'); }
-        }
-
-        function resetBracket() {
-            if(confirm("Eski turnuvayı silip yepyeni bir kayıt havuzu açmak istiyor musunuz?")) {
-                db.ref('system/bracket').set({ status: 'open', p1:'', p2:'', p3:'', p4:'', p5:'', p6:'', p7:'' });
-                alert("Turnuva sıfırlandı ve kayıtlara açıldı!");
+            const poolEl = document.getElementById('tourney-pool');
+            const boardEl = document.getElementById('tourney-leaderboard');
+            
+            if(!tData || !tData.players) {
+                poolEl.innerText = '0';
+                boardEl.innerHTML = '<p class="text-[10px] text-slate-500 text-center">Henüz katılan yok.</p>';
+                btn.classList.remove('hidden');
+                isTourneyEnrolled = false;
+                return;
             }
+
+            const players = tData.players;
+            const playerList = Object.keys(players).map(uid => ({ uid, ...players[uid] })).sort((a,b) => b.score - a.score);
+            
+            poolEl.innerText = playerList.length * 100;
+            
+            if(players[currentUserUid]) { 
+                btn.classList.add('hidden'); 
+                isTourneyEnrolled = true;
+            } else { 
+                btn.classList.remove('hidden'); 
+                isTourneyEnrolled = false;
+            }
+
+            let html = '';
+            playerList.forEach((p, index) => {
+                let badge = '';
+                if(index === 0) badge = '<i class="fa-solid fa-medal text-yellow-400"></i>';
+                else if(index === 1) badge = '<i class="fa-solid fa-medal text-slate-300"></i>';
+                else if(index === 2) badge = '<i class="fa-solid fa-medal text-orange-400"></i>';
+                
+                html += `
+                <div class="bg-black/40 p-2 rounded-lg flex justify-between items-center border border-slate-700/50">
+                    <span class="text-[10px] font-bold ${p.uid === currentUserUid ? 'text-blue-400' : 'text-white'}">
+                        ${index + 1}. ${p.name} ${badge}
+                    </span>
+                    <span class="text-[10px] font-black text-orange-400">${p.score} Puan</span>
+                </div>`;
+            });
+            boardEl.innerHTML = html;
         }
 
         function joinTournament() {
             if((userData.diamonds||0) < 100) return alert("Yetersiz Bakiye! Turnuva girişi 100 💎");
-            db.ref('system/bracket').once('value', s => {
-                const b = s.val(); if(!b || b.status !== 'open') return alert("Turnuva kayıtları kapalı!");
-                if(b.p1==userData.username || b.p2==userData.username || b.p3==userData.username || b.p4==userData.username) return alert("Zaten kayıtlısın!");
-                
-                let slot = '';
-                if(!b.p1) slot = 'p1'; else if(!b.p2) slot = 'p2'; else if(!b.p3) slot = 'p3'; else if(!b.p4) { slot = 'p4'; db.ref('system/bracket/status').set('full'); }
-                else return alert("Kontenjan dolu!");
-
-                db.ref('users/'+currentUserUid+'/diamonds').transaction(v => v - 100).then(() => {
-                    db.ref('system/bracket/'+slot).set(userData.username);
-                    alert("Turnuvaya başarıyla katıldın! Fikstürden eşleşmeni bekle.");
+            
+            db.ref('users/'+currentUserUid+'/diamonds').transaction(v => v - 100).then(() => {
+                db.ref('system/tournament/players/'+currentUserUid).set({
+                    name: userData.username,
+                    score: 0
                 });
+                alert("Turnuvaya başarıyla katıldın! Kazandığın her maç puanını artıracak.");
+            });
+        }
+
+        function endTournament() {
+            if(!confirm("Turnuvayı bitirip ödülleri ilk 3 kişiye dağıtmak istediğine emin misin?")) return;
+            
+            db.ref('system/tournament/players').once('value', s => {
+                const players = s.val();
+                if(!players) return alert("Turnuvada kimse yok!");
+                
+                const pList = Object.keys(players).map(uid => ({ uid, ...players[uid] })).sort((a,b) => b.score - a.score);
+                const totalPool = pList.length * 100;
+                
+                if(pList.length > 0) {
+                    const firstPrize = Math.floor(totalPool * 0.50);
+                    db.ref('users/'+pList[0].uid+'/diamonds').transaction(v => (v||0) + firstPrize);
+                }
+                if(pList.length > 1) {
+                    const secondPrize = Math.floor(totalPool * 0.30);
+                    db.ref('users/'+pList[1].uid+'/diamonds').transaction(v => (v||0) + secondPrize);
+                }
+                if(pList.length > 2) {
+                    const thirdPrize = Math.floor(totalPool * 0.20);
+                    db.ref('users/'+pList[2].uid+'/diamonds').transaction(v => (v||0) + thirdPrize);
+                }
+                
+                // Turnuvayı Sıfırla
+                db.ref('system/tournament').set({ status: 'open' });
+                alert("Turnuva bitti! Ödüller dağıtıldı ve sistem sıfırlandı.");
             });
         }
         // --------------------------------------------------------
@@ -844,7 +876,6 @@
                     if(!userData.refCode) { const newRc = Math.random().toString(36).substring(7).toUpperCase(); db.ref('users/' + currentUserUid).update({ refCode: newRc }); document.getElementById('prof-ref-code').innerText = newRc; } else { document.getElementById('prof-ref-code').innerText = userData.refCode; }
                     const l = getLevelInfo(userData.xp); currentPlayerLevelInfo = l; document.getElementById('player-league-text').innerHTML = `SEVİYE ${l.level} | <span class="${l.color}">${l.league}</span>`; document.getElementById('player-xp-bar').style.width = l.percent+'%'; document.getElementById('player-xp-text').innerText = l.currentXp+" / "+l.nextXp+" XP"; 
                     
-                    // Görev Kontrolü ve Sıfırlama
                     const today = new Date().toDateString();
                     if(!userData.tasks || userData.tasks.date !== today) {
                         const newTasks = { date: today, played: 0, won: 0, golds: 0, task1_claimed: false, task2_claimed: false, task3_claimed: false };
@@ -854,8 +885,7 @@
                 } 
             });
 
-            // Turnuva Ağacı Dinleyicisi
-            db.ref('system/bracket').on('value', s => updateBracketUI(s.val()));
+            db.ref('system/tournament').on('value', s => updateTourneyUI(s.val()));
 
             db.ref('users/' + currentUserUid + '/history').limitToLast(10).on('value', function(s) { let h = ''; let arr = []; s.forEach(function(c) { arr.push(c.val()); }); arr.reverse(); arr.forEach(function(m) { h += `<div class="bg-black/40 p-2 rounded-xl text-[8px] flex justify-between border-b border-slate-800"><span>vs ${m.opp}</span><span class="${m.result=='KAZANDIN'?'text-green-400':'text-red-400'}">${m.pnl}</span></div>`; }); document.getElementById('prof-history-list').innerHTML = h || 'Oynanmış maç yok.'; });
             db.ref('system/rooms').on('value', function(s) { let h = ''; s.forEach(function(c) { const r = c.val(); const lockIcon = r.password ? '<i class="fa-solid fa-lock text-red-500 mr-2"></i>' : ''; const passParam = r.password ? `'${r.password}'` : 'null'; h += `<div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}', ${passParam})" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 cursor-pointer mb-2"><div><p class="font-black text-sm">${lockIcon}${r.name}</p><p class="text-[10px] text-slate-400">${r.entryFee} 💎 GİRİŞ -> ${r.reward} 💎 ÖDÜL</p></div><i class="fa-solid fa-play text-blue-500"></i></div>`; }); document.getElementById('rooms-list').innerHTML = h; });
@@ -905,35 +935,40 @@
             });
         }
         
+        // EŞLEŞME İPTAL GÜVENLİĞİ SAĞLANDI (TRANSACTION)
         function cancelMatchmaking() { 
-            if(!isSearching) return; const rid = currentMatchRoom.rid; const entry = currentMatchRoom.entry;
-            db.ref('system/matchmaking/' + rid).once('value', function(s) {
-                const d = s.val();
-                if(d && d.uid === currentUserUid && d.status === 'waiting') {
-                    db.ref('system/matchmaking/' + rid).remove().then(function() { db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); isSearching = false; closeModal('matchmaking-overlay'); document.getElementById('wa-btn').classList.remove('hidden-element'); });
-                } else { alert("Eşleşme bulundu, iptal edilemez!"); }
+            if(!isSearching) return; 
+            const rid = currentMatchRoom.rid; const entry = currentMatchRoom.entry;
+            
+            db.ref('system/matchmaking/' + rid).transaction(function(curr) {
+                if (curr && curr.uid === currentUserUid && curr.status === 'waiting') { return null; }
+                return;
+            }, function(error, committed, snapshot) {
+                if(error) { alert("Bağlantı hatası."); }
+                else if(!committed) { alert("Eşleşme zaten tamamlandı veya bulunamadı, iptal edilemez!"); }
+                else {
+                    db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); 
+                    isSearching = false; closeModal('matchmaking-overlay'); document.getElementById('wa-btn').classList.remove('hidden-element');
+                }
             });
         }
         
-        // YENİ: Emoji Gönderme Fonksiyonu
         function sendEmoji(emo) {
             if(!isPlaying || !currentGameId) return;
             const now = Date.now();
-            if(now - lastEmojiTime < 2000) return; // 2 Saniye Kuralı (Spam Engelleme)
+            if(now - lastEmojiTime < 2000) return; 
             lastEmojiTime = now;
             db.ref('system/games/'+currentGameId+'/emojis').push({e: emo, sender: currentUserUid, time: now});
         }
 
-        // YENİ: Emoji Ekranda Uçurma Animasyonu
         function renderFloatingEmoji(emo, side) {
             const area = document.getElementById('emoji-display-area');
             const el = document.createElement('div');
             el.innerText = emo; el.className = 'floating-emoji';
             el.style.bottom = '20%';
-            // Kendi emojinse senin taraftan, rakibinki ise onun taraftan çıkar
             el.style.left = side === 'left' ? '15%' : '80%';
             area.appendChild(el);
-            setTimeout(() => el.remove(), 1500); // Animasyon bitince temizle
+            setTimeout(() => el.remove(), 1500);
         }
 
         function startGame(gid) { 
@@ -942,7 +977,7 @@
 
             playSfx('start'); currentGameId = gid; closeModal('matchmaking-overlay'); showPage('game-page'); 
             document.getElementById('game-area').innerHTML = ""; 
-            timeLeft = 30; lastClickTime = Date.now(); sessionGolds = 0; // Değişkenleri sıfırla
+            timeLeft = 30; lastClickTime = Date.now(); sessionGolds = 0; 
             
             db.ref('system/games/' + gid).on('value', function(s) { 
                 const g = s.val(); if(!g) return; 
@@ -950,10 +985,9 @@
                 document.getElementById('my-score').innerText = g[myKey]; document.getElementById('opp-score').innerText = (myKey === 'p1Score') ? g.p2Score : g.p1Score; document.getElementById('opp-name').innerText = (myKey === 'p1Score') ? g.p2Name : g.p1Name; 
             }); 
             
-            // Emoji Dinleyicisini Başlat
             db.ref('system/games/' + gid + '/emojis').on('child_added', function(s) {
                 const data = s.val();
-                if(data && Date.now() - data.time < 5000) { // Sadece yeni emojileri göster
+                if(data && Date.now() - data.time < 5000) { 
                     renderFloatingEmoji(data.e, data.sender === currentUserUid ? 'left' : 'right');
                 }
             });
@@ -970,7 +1004,7 @@
             const hit = function(e) { 
                 e.preventDefault(); const n = Date.now(); if(n - lastClickTime < 80) return; lastClickTime = n; 
                 playSfx(isG ? 'gold' : 'hit'); 
-                if(isG) sessionGolds++; // GÖREV İÇİN ALTIN VURUSLARI SAY
+                if(isG) sessionGolds++; 
                 db.ref('system/games/' + currentGameId + '/' + myKey).transaction(function(v) { return v + (isG ? 3 : 1); }); 
                 t.remove(); 
             }; 
@@ -979,8 +1013,8 @@
         
         function finishGame() { 
             clearInterval(gameInterval); clearInterval(targetInterval); isPlaying = false; 
-            db.ref('system/games/' + currentGameId).off(); // Skor dinlemeyi kapat
-            db.ref('system/games/' + currentGameId + '/emojis').off(); // Emoji dinlemeyi kapat
+            db.ref('system/games/' + currentGameId).off(); 
+            db.ref('system/games/' + currentGameId + '/emojis').off(); 
 
             db.ref('system/games/' + currentGameId).once('value', function(s) { 
                 const g = s.val(); if(!g) return; 
@@ -995,13 +1029,24 @@
 
                 db.ref('users/' + currentUserUid + '/history').push({ opp: (myKey === 'p1Score' ? g.p2Name : g.p1Name), myScore: myS, oppScore: oppS, result: resultText, pnl: pnl, date: new Date().toLocaleString('tr-TR') }); 
                 
-                // YENİ: GÖREV BİLGİLERİNİ GÜNCELLE
                 db.ref('users/' + currentUserUid + '/tasks/played').transaction(v => (v||0) + 1);
                 if(sessionGolds > 0) db.ref('users/' + currentUserUid + '/tasks/golds').transaction(v => (v||0) + sessionGolds);
-                if(myS > oppS) db.ref('users/' + currentUserUid + '/tasks/won').transaction(v => (v||0) + 1);
+                
+                if(myS > oppS) {
+                    db.ref('users/' + currentUserUid + '/tasks/won').transaction(v => (v||0) + 1);
+                    // TURNUVA PUANI EKLEME
+                    if(isTourneyEnrolled) { db.ref('system/tournament/players/'+currentUserUid+'/score').transaction(v => (v||0) + 1); }
+                }
                 
                 db.ref('users/' + currentUserUid + '/diamonds').transaction(function(cur) { if(myS > oppS) return (cur || 0) + g.reward; if(myS === oppS) return (cur || 0) + g.entry; return cur; }); 
-                if(myS > oppS) { db.ref('system/accounting/commission').transaction(function(v) { return (v || 0) + cut; }); }
+                
+                // ÇİFT YAZMA ENGELLENDİ: Sadece 1. oyuncu (Kurucu) komisyonu kasaya yazar
+                if(currentUserUid === g.p1 && myS > oppS) { 
+                    db.ref('system/accounting/commission').transaction(function(v) { return (v || 0) + cut; }); 
+                } else if (currentUserUid === g.p1 && oppS > myS) {
+                    db.ref('system/accounting/commission').transaction(function(v) { return (v || 0) + cut; }); 
+                }
+
                 db.ref('system/active_players/' + currentUserUid).remove(); 
                 
                 setTimeout(function() { showPage('lobby-page'); document.getElementById('wa-btn').classList.remove('hidden-element'); alert(`${resultText}! (+${xp} XP)`); }, 2000); 
