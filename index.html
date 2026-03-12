@@ -529,4 +529,604 @@
                     Süre<br><span id="game-time" class="text-3xl font-orbitron">30</span>
                 </div>
                 <div class="text-center w-1/3 text-red-400 text-[9px] font-bold">
-                    <span id="opp-name">Rakip</span><br><span id="opp-score" class="text-4xl font-black te
+                    <span id="opp-name">Rakip</span><br><span id="opp-score" class="text-4xl font-black text-white">0</span>
+                </div>
+            </div>
+            
+            <div id="emoji-display-area" class="absolute inset-0 pointer-events-none z-40 overflow-hidden"></div>
+
+            <div id="game-area" class="flex-1"></div>
+
+            <div id="emoji-bar" class="flex justify-center gap-6 p-4 glass rounded-t-3xl mt-2 z-50">
+                <button onclick="sendEmoji('🔥')" class="text-3xl hover:scale-125 transition-transform active:scale-90">🔥</button>
+                <button onclick="sendEmoji('😂')" class="text-3xl hover:scale-125 transition-transform active:scale-90">😂</button>
+                <button onclick="sendEmoji('😡')" class="text-3xl hover:scale-125 transition-transform active:scale-90">😡</button>
+                <button onclick="sendEmoji('😭')" class="text-3xl hover:scale-125 transition-transform active:scale-90">😭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        document.onkeydown = function(e) { 
+            if(e.keyCode === 123 || e.keyCode === 115) return false; 
+            if(e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) return false; 
+            if(e.ctrlKey && e.keyCode === 85) return false; 
+        };
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCpBrkM6Yh__FXhc8aznEp1G2AqMgxr_iE", 
+            authDomain: "arenav14-8ad95.firebaseapp.com", 
+            projectId: "arenav14-8ad95", 
+            storageBucket: "arenav14-8ad95.firebasestorage.app", 
+            messagingSenderId: "818899825621", 
+            appId: "1:818899825621:web:a51cd631c943863fcb435c", 
+            databaseURL: "https://arenav14-8ad95-default-rtdb.firebaseio.com" 
+        };
+        
+        firebase.initializeApp(firebaseConfig); 
+        const auth = firebase.auth(); 
+        const db = firebase.database();
+        
+        let currentUserUid = null;
+        let userData = {};
+        let isAdmin = false;
+        let allUsers = {};
+        
+        let gameInterval;
+        let targetInterval;
+        let timeLeft = 30;
+        let currentGameId = null;
+        let myKey = null;
+        let currentMatchRoom = null;
+        
+        let systemDailyReward = 50;
+        let systemBonusRate = 0; 
+        let tourStart = "20:00";
+        let tourEnd = "23:59";
+        let isTourActive = false;
+        let adminWhatsappNum = ""; 
+        let currentPlayerLevelInfo = { bonus: 5 }; 
+        let lastClickTime = 0;
+        
+        let isSearching = false; 
+        let isPlaying = false;
+        let isMuted = false;
+        let isMaintenanceMode = false;
+        
+        let sessionGolds = 0; 
+        let lastEmojiTime = 0; 
+        let isTourneyEnrolled = false;
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = 'fa-circle-info';
+            if(type === 'success') icon = 'fa-circle-check';
+            if(type === 'error') icon = 'fa-circle-exclamation';
+            if(type === 'warning') icon = 'fa-triangle-exclamation';
+            
+            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOutUp 0.4s forwards';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        function getLevelInfo(xpTotal) {
+            let xp = xpTotal || 0; 
+            let lvl = 1; 
+            let req = 100;
+            while(xp >= req) { xp -= req; lvl++; req = lvl * 100; }
+            let league = "BRONZ LİG", bonus = 5, color = "text-orange-400", barColor = "bg-orange-500";
+            if(lvl >= 6 && lvl <= 10) { league = "GÜMÜŞ LİG"; bonus = 10; color = "text-slate-300"; barColor = "bg-slate-400"; }
+            else if(lvl >= 11 && lvl <= 20) { league = "ALTIN LİG"; bonus = 20; color = "text-yellow-400"; barColor = "bg-yellow-500"; }
+            else if(lvl >= 21 && lvl <= 40) { league = "ELİT LİG"; bonus = 30; color = "text-cyan-400"; barColor = "bg-cyan-500"; }
+            else if(lvl >= 41) { league = "EFSANE LİG"; bonus = 40; color = "text-purple-500"; barColor = "bg-purple-500"; }
+            return { level: lvl, currentXp: xp, nextXp: req, league, bonus, color, barColor, percent: Math.floor((xp / req) * 100) };
+        }
+
+        let audioCtx; 
+        function initAudio() { 
+            try {
+                if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                if(audioCtx.state === 'suspended') { audioCtx.resume(); }
+            } catch(e) {}
+        }
+        
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+            if(isMuted) {
+                btn.innerHTML = '<i class="fa-solid fa-volume-xmark text-red-500"></i>';
+                btn.classList.add('border', 'border-red-500/50');
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                btn.classList.remove('border', 'border-red-500/50');
+            }
+        }
+
+        function playSfx(type) {
+            try {
+                if(!audioCtx || isMuted) return; 
+                const osc = audioCtx.createOscillator(); 
+                const gain = audioCtx.createGain(); 
+                osc.connect(gain); 
+                gain.connect(audioCtx.destination);
+                
+                if(type === 'hit') { 
+                    osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.1); 
+                } 
+                else if(type === 'gold') { 
+                    osc.type = 'square'; 
+                    osc.frequency.setValueAtTime(1000, audioCtx.currentTime); 
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.2); 
+                }
+            } catch(e) {}
+        }
+
+        function buyColor(colorHex, price, colorName) {
+            if((userData.diamonds||0) < price) { return showToast("Yetersiz bakiye!", "error"); }
+            if(userData.chatColor === colorHex) { return showToast("Zaten bu renge sahipsin!", "warning"); }
+            
+            if(confirm(`${colorName} rengini ${price} Elmas karşılığında satın almak istiyor musun?`)) {
+                db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return v - price; });
+                db.ref('users/' + currentUserUid + '/chatColor').set(colorHex);
+                showToast("Satın alma başarılı! Artık isminin yanında VIP elmas görünecek.", "success");
+                closeModal('store-modal');
+            }
+        }
+
+        function toggleMaintenance() { db.ref('system/config/maintenance').set(!isMaintenanceMode); }
+        function showPage(id) { document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); }); document.getElementById(id).classList.add('active'); }
+        function openModal(id) { document.getElementById(id).classList.add('flex'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('flex'); }
+        
+        function toggleAuthMode(mode) { 
+            if(mode === 'register') { 
+                document.getElementById('login-box').classList.add('hidden-element'); 
+                document.getElementById('register-box').classList.remove('hidden-element'); 
+            } else { 
+                document.getElementById('register-box').classList.add('hidden-element'); 
+                document.getElementById('login-box').classList.remove('hidden-element'); 
+            } 
+        }
+        function openSupport() { 
+            if(adminWhatsappNum) { window.open(`https://wa.me/${adminWhatsappNum}`, '_blank'); } 
+            else { showToast("Destek çevrimdışı.", "warning"); }
+        }
+
+        function handleLogin() {
+            const u = document.getElementById('l-email').value.trim();
+            const p = document.getElementById('l-pass').value;
+            if(!u || !p) { return showToast("Lütfen E-posta ve şifre girin!", "warning"); }
+            auth.signInWithEmailAndPassword(u.includes('@') ? u : u + "@a.v14", p).then(function() { 
+                db.ref('users/'+auth.currentUser.uid).once('value', function(s) { 
+                    const uData = s.val();
+                    if(uData && uData.status === 'banned') { auth.signOut(); showToast("Hesabınız banlanmıştır!", "error"); } 
+                    else if(uData && (uData.role === 'mod' || uData.role === 'admin')) { isAdmin = true; document.getElementById('wa-btn').classList.add('hidden-element'); startAdmin(); } 
+                    else { isAdmin = false; startLobby(); }
+                }); 
+            }).catch(function() { showToast("E-posta veya şifre hatalı!", "error"); });
+        }
+        
+        function handleRegister() { 
+            const n = document.getElementById('r-name').value; const e = document.getElementById('r-email').value; const p = document.getElementById('r-pass').value; const ref = document.getElementById('r-ref').value.toUpperCase(); const t = document.getElementById('r-terms').checked;
+            if(!n || !e || p.length < 6 || !t) { return showToast("Bilgileri eksiksiz doldurun ve sözleşmeyi onaylayın!", "warning"); }
+            auth.createUserWithEmailAndPassword(e, p).then(function(r) { 
+                const uid = r.user.uid; const rc = Math.random().toString(36).substring(7).toUpperCase();
+                db.ref('users/'+uid).set({ username: n, email: e, diamonds: 0, wagerNeeded: 0, wins: 0, xp: 0, status: 'active', refCode: rc, depositCount: 0, role: 'user' });
+                if(ref) { db.ref('users').orderByChild('refCode').equalTo(ref).once('value', function(s) { if(s.exists()) { const inviterUid = Object.keys(s.val())[0]; db.ref('users/' + uid).update({ invitedBy: inviterUid }); } }); }
+                showToast("Kayıt Başarılı! Giriş yapabilirsiniz.", "success"); toggleAuthMode('login');
+            }).catch(function() { showToast("Kayıt Hatası! Bu mail kullanılıyor olabilir.", "error"); });
+        }
+        
+        function forgotPassword() { 
+            const e = document.getElementById('l-email').value; 
+            if(!e || !e.includes('@')) { return showToast("Lütfen önce E-Posta kutusuna mailinizi yazın, sonra tıklayın.", "warning"); }
+            auth.sendPasswordResetEmail(e).then(function() { showToast("Sıfırlama linki gönderildi!", "success"); }).catch(function() { showToast("Hesap bulunamadı.", "error"); }); 
+        }
+
+        function checkTournamentTime() { 
+            const now = new Date(); const c = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            isTourActive = (tourStart < tourEnd) ? (c >= tourStart && c <= tourEnd) : (c >= tourStart || c <= tourEnd);
+            const d = document.getElementById('tour-dot'); const t = document.getElementById('tour-status-text');
+            if(d && t) { d.className = isTourActive ? "w-2 h-2 bg-green-500 rounded-full animate-pulse" : "w-2 h-2 bg-red-500 rounded-full"; t.innerText = isTourActive ? "AKTİF" : "KAPALI ("+tourStart+")"; }
+        } setInterval(checkTournamentTime, 10000);
+
+        function startAdmin() {
+            showPage('admin-page'); document.getElementById('wa-btn').classList.add('hidden-element');
+            
+            // MODERATÖR GİZLEME MANTIĞI
+            if(userData.role === 'mod') {
+                document.getElementById('admin-system-card').classList.add('hidden-element');
+                document.getElementById('admin-finance-card').classList.add('hidden-element');
+                document.getElementById('admin-bonus-card').classList.add('hidden-element');
+            } else {
+                document.getElementById('admin-system-card').classList.remove('hidden-element');
+                document.getElementById('admin-finance-card').classList.remove('hidden-element');
+                document.getElementById('admin-bonus-card').classList.remove('hidden-element');
+            }
+
+            db.ref('system/accounting').on('value', function(s) { const a = s.val() || {}; document.getElementById('admin-total-deposit').innerText = (a.totalDeposit||0)+" ₺"; document.getElementById('admin-total-withdraw').innerText = (a.totalWithdraw||0)+" ₺"; document.getElementById('admin-net-vault').innerText = ((a.totalDeposit||0)-(a.totalWithdraw||0))+" ₺"; document.getElementById('admin-sys-commission').innerText = (a.commission||0)+" 💎"; });
+            db.ref('system/config').on('value', function(s) { const c = s.val() || {}; document.getElementById('admin-daily-amount').value = c.dailyReward || 50; document.getElementById('admin-bonus-rate').value = c.bonusRate || 0; if(c.tournament) { tourStart = c.tournament.start || "20:00"; tourEnd = c.tournament.end || "23:59"; } document.getElementById('admin-tour-start').value = tourStart; document.getElementById('admin-tour-end').value = tourEnd; adminWhatsappNum = c.whatsapp || ""; document.getElementById('admin-whatsapp').value = adminWhatsappNum; checkTournamentTime(); isMaintenanceMode = c.maintenance || false; const mBtn = document.getElementById('admin-maintenance-btn'); if(mBtn) { mBtn.innerText = isMaintenanceMode ? "BAKIM MODUNU KAPAT" : "BAKIM MODUNU AÇ"; mBtn.className = isMaintenanceMode ? "w-full bg-green-600 py-3 rounded-xl font-black text-xs tracking-widest mb-2" : "w-full bg-red-600 py-3 rounded-xl font-black text-xs tracking-widest mb-2"; } });
+            db.ref('users').on('value', function(s) { allUsers = s.val() || {}; let b = 0; Object.keys(allUsers).forEach(function(key) { b += (allUsers[key].diamonds || 0); }); document.getElementById('admin-total-users').innerText = Object.keys(allUsers).length; document.getElementById('admin-players-balance').innerText = b+" 💎"; renderUsers(allUsers); });
+            db.ref('system/deposit_requests').on('value', function(s) { let h = ''; s.forEach(function(c) { const r = c.val(); h += `<div class="bg-slate-800 p-2 rounded text-[10px] flex justify-between"><span>${r.name}: YATIRIM: ${r.amount} ₺</span><button onclick="approveDeposit('${c.key}','${r.uid}',${r.amount},${r.total},'${r.name}')" class="bg-emerald-600 px-2 py-1 rounded">ONAYLA</button></div>`; }); document.getElementById('admin-deposit-list').innerHTML = h || 'Talep Yok'; });
+            db.ref('system/withdraw_requests').on('value', function(s) { let h = ''; s.forEach(function(c) { const r = c.val(); h += `<div class="bg-slate-800 p-2 rounded text-[10px] flex justify-between"><span>${r.name}: ${r.amount} 💎</span><button onclick="approveWithdraw('${c.key}','${r.name}',${r.amount})" class="bg-orange-600 px-2 py-1 rounded">ÖDENDİ</button></div>`; }); document.getElementById('admin-withdraw-list').innerHTML = h || 'Talep Yok'; });
+            db.ref('system/archive').limitToLast(15).on('value', function(s) { let arr = []; s.forEach(function(c) { arr.push(c.val()); }); arr.reverse(); let h = ''; arr.forEach(function(a) { h += `<p class="text-[7px] border-b border-slate-700 pb-1">${a.date} | ${a.name} | ${a.amount} ${a.type=='yatirim'?'₺':'💎'}</p>`; }); document.getElementById('admin-archive-list').innerHTML = h; });
+            db.ref('system/games').on('value', function(s) { let h = ''; s.forEach(function(c) { const g = c.val(); if(g.status == 'playing') { h += `<p class="text-[8px] bg-slate-800 p-1">${g.p1Name} vs ${g.p2Name}</p>`; } }); document.getElementById('admin-live-radar').innerHTML = h || 'Aktif maç yok'; });
+            db.ref('system/rooms').on('value', function(s) { let h = ''; s.forEach(function(c) { const r = c.val(); const passTxt = r.password ? ` <span class="text-red-400">(Şifre: ${r.password})</span>` : ''; h += `<div class="flex justify-between text-[9px] bg-slate-800 p-1 mb-1"><span>${r.name} (${r.entryFee})${passTxt}</span><button onclick="db.ref('system/rooms/${c.key}').remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div>`; }); document.getElementById('admin-rooms-list').innerHTML = h; });
+        }
+        
+        function updateAnnouncement() { db.ref('system/config/announcement').set(document.getElementById('admin-announcement').value); showToast("Duyuru yayınlandı!", "success"); }
+        function updateWhatsapp() { db.ref('system/config/whatsapp').set(document.getElementById('admin-whatsapp').value); showToast("Numara kaydedildi!", "success"); }
+        function updateDailyReward() { db.ref('system/config/dailyReward').set(parseInt(document.getElementById('admin-daily-amount').value)); showToast("Kaydedildi!", "success"); }
+        function updateSystemBonus() { db.ref('system/config/bonusRate').set(parseInt(document.getElementById('admin-bonus-rate').value)); showToast("Kaydedildi!", "success"); }
+        function updateTournament() { const s = document.getElementById('admin-tour-start').value; const e = document.getElementById('admin-tour-end').value; if(s && e) { db.ref('system/config/tournament').set({start: s, end: e}); showToast("Saatler güncellendi!", "success"); } }
+        
+        function createNewRoom() { 
+            const n = document.getElementById('new-room-name').value; const e = parseInt(document.getElementById('new-room-entry').value); const p = document.getElementById('new-room-pass').value.trim();
+            if(n && e) { let roomData = {name: n, entryFee: e, reward: (e*1.5)}; if(p) roomData.password = p; db.ref('system/rooms').push(roomData); showToast("Oda başarıyla kuruldu!", "success"); document.getElementById('new-room-name').value = ''; document.getElementById('new-room-entry').value = ''; document.getElementById('new-room-pass').value = ''; } 
+        }
+        
+        function approveDeposit(rid, uid, base, total, name) { db.ref(`users/${uid}`).once('value', function(snap) { let u = snap.val(); if(u && u.invitedBy && (u.depositCount || 0) < 3) { let refBonus = Math.floor(base * 0.10); db.ref(`users/${u.invitedBy}/diamonds`).transaction(function(v) { return (v || 0) + refBonus; }); db.ref(`users/${uid}/depositCount`).transaction(function(v) { return (v || 0) + 1; }); } db.ref(`users/${uid}/diamonds`).transaction(function(v) { return (v||0)+total; }); db.ref(`users/${uid}/wagerNeeded`).transaction(function(v) { return (v||0)+total; }); db.ref('system/accounting/totalDeposit').transaction(function(v) { return (v||0)+base; }); db.ref('system/archive').push({ name: name, amount: base, type: 'yatirim', date: new Date().toLocaleString() }); db.ref(`system/deposit_requests/${rid}`).remove(); }); }
+        function approveWithdraw(rid, name, amt) { db.ref('system/accounting/totalWithdraw').transaction(function(v) { return (v||0)+amt; }); db.ref('system/archive').push({ name: name, amount: amt, type: 'cekim', date: new Date().toLocaleString() }); db.ref(`system/withdraw_requests/${rid}`).remove(); }
+        
+        function renderUsers(obj) { let h = ''; Object.keys(obj).forEach(function(uid) { const u = obj[uid]; const l = getLevelInfo(u.xp); const modTag = u.role === 'mod' ? '<span class="text-purple-500 font-bold ml-1">[MOD]</span>' : ''; h += `<div onclick="showXray('${uid}')" class="stat-card bg-slate-800/40 mb-2 flex justify-between items-center text-xs cursor-pointer border-l-4 ${u.status === 'banned' ? 'border-red-500 opacity-50' : 'border-blue-500'}"><div><span class="font-black uppercase text-blue-300">${u.username}${modTag}</span><br><span class="text-[8px] text-slate-400">Lvl ${l.level}</span></div><span class="text-cyan-400 font-bold">${(u.diamonds||0)} 💎</span></div>`; }); document.getElementById('admin-users-list').innerHTML = h; }
+        function filterUsers() { const t = document.getElementById('user-search').value.toLowerCase(); const f = {}; Object.keys(allUsers).forEach(function(k) { if(allUsers[k].username.toLowerCase().includes(t)) { f[k] = allUsers[k]; } }); renderUsers(f); }
+
+        let currentXrayUid = null; 
+        function showXray(uid) { currentXrayUid = uid; const u = allUsers[uid]; const l = getLevelInfo(u.xp); document.getElementById('xray-content').innerHTML = ` <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-2"><span class="text-[10px] text-slate-400">Kullanıcı Adı</span><span class="font-bold text-blue-400 uppercase">${u.username}</span></div> <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded mb-3"><span class="text-[10px] text-slate-400">Kayıtlı E-Posta</span><span class="text-[10px] text-white">${u.email}</span></div> <div class="grid grid-cols-2 gap-2 mb-2"><div><label class="text-[9px] text-slate-400">Bakiye (💎)</label><input id="xray-diamonds" type="number" value="${u.diamonds || 0}" class="input-field py-2 text-sm text-cyan-400 font-bold text-center"></div><div><label class="text-[9px] text-slate-400">Çevrim Şartı</label><input id="xray-wager" type="number" value="${u.wagerNeeded || 0}" class="input-field py-2 text-sm text-orange-400 font-bold text-center"></div></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Tecrübe Puanı / XP (Lvl ${l.level})</label><input id="xray-xp" type="number" value="${u.xp || 0}" class="input-field py-2 text-sm text-purple-400 font-bold"></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Telefon Numarası</label><input id="xray-phone" type="text" value="${u.phone || ''}" class="input-field py-2 text-xs"></div> <div class="mb-2"><label class="text-[9px] text-slate-400">Banka IBAN Numarası</label><input id="xray-iban" type="text" value="${u.iban || ''}" class="input-field py-2 text-[10px]"></div>`; const banBtn = document.getElementById('xray-ban-btn'); const saveBtn = document.getElementById('xray-save-btn'); const roleBtn = document.getElementById('xray-role-btn'); if(u.status === 'banned') { banBtn.innerHTML = "<i class='fa-solid fa-unlock mr-2'></i>BAN KALDIR"; banBtn.className = "flex-1 bg-green-600 py-3 rounded-xl font-bold text-xs tracking-widest"; banBtn.onclick = function() { db.ref('users/' + uid + '/status').set('active'); closeModal('xray-modal'); }; } else { banBtn.innerHTML = "<i class='fa-solid fa-gavel mr-2'></i>BANLA"; banBtn.className = "flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs tracking-widest"; banBtn.onclick = function() { db.ref('users/' + uid + '/status').set('banned'); closeModal('xray-modal'); }; } if(u.role === 'mod') { roleBtn.innerHTML = "<i class='fa-solid fa-user-minus mr-2'></i>MODERATÖR YETKİSİNİ AL"; roleBtn.className = "w-full bg-orange-600 py-3 rounded-xl font-bold text-xs tracking-widest mt-2"; roleBtn.onclick = function() { db.ref('users/' + uid + '/role').set('user'); closeModal('xray-modal'); }; } else { roleBtn.innerHTML = "<i class='fa-solid fa-user-shield mr-2'></i>BU ÜYEYİ MODERATÖR YAP"; roleBtn.className = "w-full bg-purple-600 py-3 rounded-xl font-bold text-xs tracking-widest mt-2"; roleBtn.onclick = function() { db.ref('users/' + uid + '/role').set('mod'); closeModal('xray-modal'); }; } 
+        if(userData.role === 'mod') { roleBtn.style.display = 'none'; } else { roleBtn.style.display = 'block'; }
+        saveBtn.onclick = function() { saveXrayData(uid); }; openModal('xray-modal'); }
+        function saveXrayData(uid) { const newDiamonds = parseInt(document.getElementById('xray-diamonds').value) || 0; const newWager = parseInt(document.getElementById('xray-wager').value) || 0; const newXp = parseInt(document.getElementById('xray-xp').value) || 0; const newPhone = document.getElementById('xray-phone').value.trim(); const newIban = document.getElementById('xray-iban').value.trim(); db.ref('users/' + uid).update({ diamonds: newDiamonds, wagerNeeded: newWager, xp: newXp, phone: newPhone, iban: newIban }).then(function() { showToast("Üye verileri başarıyla kaydedildi!", "success"); closeModal('xray-modal'); }).catch(function(e) { showToast("Kaydetme hatası!", "error"); }); }
+
+        function updateTaskUI(tData) {
+            const pPct = Math.min(100, (tData.played/3)*100); document.getElementById('task1-bar').style.width = pPct+'%'; document.getElementById('task1-status').innerText = Math.min(3,tData.played)+'/3';
+            const btn1 = document.getElementById('task1-btn'); if(tData.task1_claimed) { btn1.innerText = "ALINDI"; btn1.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn1.onclick = null; } else if(tData.played >= 3) { btn1.className = "w-full bg-indigo-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse"; }
+            
+            const wPct = Math.min(100, (tData.won/1)*100); document.getElementById('task2-bar').style.width = wPct+'%'; document.getElementById('task2-status').innerText = Math.min(1,tData.won)+'/1';
+            const btn2 = document.getElementById('task2-btn'); if(tData.task2_claimed) { btn2.innerText = "ALINDI"; btn2.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn2.onclick = null; } else if(tData.won >= 1) { btn2.className = "w-full bg-green-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse"; }
+            
+            const gPct = Math.min(100, (tData.golds/10)*100); document.getElementById('task3-bar').style.width = gPct+'%'; document.getElementById('task3-status').innerText = Math.min(10,tData.golds)+'/10';
+            const btn3 = document.getElementById('task3-btn'); if(tData.task3_claimed) { btn3.innerText = "ALINDI"; btn3.className = "w-full bg-green-600/30 text-green-400 py-1.5 rounded-lg text-[9px] font-bold"; btn3.onclick = null; } else if(tData.golds >= 10) { btn3.className = "w-full bg-yellow-600 text-white py-1.5 rounded-lg text-[9px] font-bold animate-pulse"; }
+        }
+
+        function claimTaskReward(type, req, reward, btnId) {
+            const t = userData.tasks;
+            if(t[type] >= req && !t[btnId+'_claimed']) {
+                db.ref('users/'+currentUserUid+'/diamonds').transaction(v => (v||0)+reward);
+                db.ref('users/'+currentUserUid+'/tasks/'+btnId+'_claimed').set(true);
+                showToast(`Tebrikler! Görevi tamamladın ve ${reward} 💎 kazandın.`, "success");
+            } else { showToast("Görev henüz tamamlanmadı!", "warning"); }
+        }
+
+        function updateTourneyUI(tData) {
+            const btn = document.getElementById('join-tourney-btn');
+            const poolEl = document.getElementById('tourney-pool');
+            const boardEl = document.getElementById('tourney-leaderboard');
+            
+            if(!tData || !tData.players) {
+                poolEl.innerText = '0';
+                boardEl.innerHTML = '<p class="text-[10px] text-slate-500 text-center">Henüz katılan yok.</p>';
+                btn.classList.remove('hidden');
+                isTourneyEnrolled = false;
+                return;
+            }
+
+            const players = tData.players;
+            const playerList = Object.keys(players).map(uid => ({ uid, ...players[uid] })).sort((a,b) => b.score - a.score);
+            
+            // %100 Havuzu Ekranda Gösteriyoruz
+            const totalPool = playerList.length * 100;
+            poolEl.innerText = totalPool;
+            
+            if(players[currentUserUid]) { 
+                btn.classList.add('hidden'); 
+                isTourneyEnrolled = true;
+            } else { 
+                btn.classList.remove('hidden'); 
+                isTourneyEnrolled = false;
+            }
+
+            let html = '';
+            playerList.forEach((p, index) => {
+                let badge = '';
+                if(index === 0) badge = '<i class="fa-solid fa-medal text-yellow-400"></i>';
+                else if(index === 1) badge = '<i class="fa-solid fa-medal text-slate-300"></i>';
+                else if(index === 2) badge = '<i class="fa-solid fa-medal text-orange-400"></i>';
+                
+                html += `
+                <div class="bg-black/40 p-2 rounded-lg flex justify-between items-center border border-slate-700/50">
+                    <span class="text-[10px] font-bold ${p.uid === currentUserUid ? 'text-blue-400' : 'text-white'}">
+                        ${index + 1}. ${p.name} ${badge}
+                    </span>
+                    <span class="text-[10px] font-black text-orange-400">${p.score} Puan</span>
+                </div>`;
+            });
+            boardEl.innerHTML = html;
+        }
+
+        function joinTournament() {
+            if((userData.diamonds||0) < 100) return showToast("Yetersiz Bakiye! Turnuva girişi 100 💎", "error");
+            
+            db.ref('users/'+currentUserUid+'/diamonds').transaction(v => v - 100).then(() => {
+                db.ref('system/tournament/players/'+currentUserUid).set({
+                    name: userData.username,
+                    score: 0
+                });
+                showToast("Turnuvaya başarıyla katıldın!", "success");
+            });
+        }
+
+        function endTournament() {
+            if(!confirm("Turnuvayı bitirip ödülleri dağıtmak istediğine emin misin?")) return;
+            
+            db.ref('system/tournament/players').once('value', s => {
+                const players = s.val();
+                if(!players) return showToast("Turnuvada kimse yok!", "warning");
+                
+                const pList = Object.keys(players).map(uid => ({ uid, ...players[uid] })).sort((a,b) => b.score - a.score);
+                const totalEntryFees = pList.length * 100;
+                
+                // %75 Oyunculara, %25 Sisteme
+                const prizePool = Math.floor(totalEntryFees * 0.75);
+                const systemCut = totalEntryFees - prizePool;
+                
+                if(pList.length > 0) {
+                    const firstPrize = Math.floor(prizePool * 0.50);
+                    db.ref('users/'+pList[0].uid+'/diamonds').transaction(v => (v||0) + firstPrize);
+                }
+                if(pList.length > 1) {
+                    const secondPrize = Math.floor(prizePool * 0.30);
+                    db.ref('users/'+pList[1].uid+'/diamonds').transaction(v => (v||0) + secondPrize);
+                }
+                if(pList.length > 2) {
+                    const thirdPrize = Math.floor(prizePool * 0.20);
+                    db.ref('users/'+pList[2].uid+'/diamonds').transaction(v => (v||0) + thirdPrize);
+                }
+                
+                // Sistem payını kasaya ekle
+                if(systemCut > 0) {
+                    db.ref('system/accounting/commission').transaction(v => (v||0) + systemCut);
+                }
+                
+                db.ref('system/tournament').set({ status: 'open' });
+                showToast("Turnuva bitti! Ödüller dağıtıldı ve sistem komisyonunu aldı.", "success");
+            });
+        }
+
+        function startLobby() {
+            currentUserUid = auth.currentUser.uid; 
+            showPage('lobby-page'); document.getElementById('wa-btn').classList.remove('hidden-element');
+            
+            db.ref('system/active_players/' + currentUserUid).remove();
+            isSearching = false;
+            isPlaying = false;
+
+            db.ref('system/config').on('value', function(s) { 
+                const c = s.val() || {}; 
+                systemDailyReward = c.dailyReward || 50; systemBonusRate = c.bonusRate || 0; adminWhatsappNum = c.whatsapp || ""; document.getElementById('lobby-announcement').innerText = c.announcement || "Hoşgeldiniz!"; 
+                if(c.tournament) { tourStart = c.tournament.start || "20:00"; tourEnd = c.tournament.end || "23:59"; checkTournamentTime(); } 
+                isMaintenanceMode = c.maintenance || false; const mOverlay = document.getElementById('maintenance-overlay');
+                if(!isAdmin) { if(isMaintenanceMode && !isPlaying) { mOverlay.classList.remove('hidden-element'); mOverlay.classList.add('flex'); } else { mOverlay.classList.add('hidden-element'); mOverlay.classList.remove('flex'); } }
+            });
+
+            db.ref('users/'+currentUserUid).on('value', function(s) { 
+                userData = s.val(); 
+                if(userData && userData.status === 'banned') { auth.signOut(); location.reload(); } 
+                if(userData) { 
+                    const vipIconLobby = userData.chatColor ? `<i class="fa-solid fa-gem ml-2 drop-shadow-md" style="color: ${userData.chatColor};"></i>` : '';
+                    document.getElementById('display-name').innerHTML = userData.username + vipIconLobby; document.getElementById('display-name').style.color = userData.chatColor || 'white';
+                    document.getElementById('avatar-letter').innerText = userData.username[0].toUpperCase(); document.getElementById('user-diamonds').innerText = (userData.diamonds||0).toLocaleString()+" 💎"; 
+                    if(!userData.refCode) { const newRc = Math.random().toString(36).substring(7).toUpperCase(); db.ref('users/' + currentUserUid).update({ refCode: newRc }); document.getElementById('prof-ref-code').innerText = newRc; } else { document.getElementById('prof-ref-code').innerText = userData.refCode; }
+                    const l = getLevelInfo(userData.xp); currentPlayerLevelInfo = l; document.getElementById('player-league-text').innerHTML = `SEVİYE ${l.level} | <span class="${l.color}">${l.league}</span>`; document.getElementById('player-xp-bar').style.width = l.percent+'%'; document.getElementById('player-xp-text').innerText = l.currentXp+" / "+l.nextXp+" XP"; 
+                    
+                    const today = new Date().toDateString();
+                    if(!userData.tasks || userData.tasks.date !== today) {
+                        const newTasks = { date: today, played: 0, won: 0, golds: 0, task1_claimed: false, task2_claimed: false, task3_claimed: false };
+                        db.ref('users/'+currentUserUid+'/tasks').set(newTasks);
+                        updateTaskUI(newTasks);
+                    } else { updateTaskUI(userData.tasks); }
+                } 
+            });
+
+            db.ref('system/tournament').on('value', s => updateTourneyUI(s.val()));
+
+            db.ref('users/' + currentUserUid + '/history').limitToLast(10).on('value', function(s) { let h = ''; let arr = []; s.forEach(function(c) { arr.push(c.val()); }); arr.reverse(); arr.forEach(function(m) { h += `<div class="bg-black/40 p-2 rounded-xl text-[8px] flex justify-between border-b border-slate-800"><span>vs ${m.opp}</span><span class="${m.result=='KAZANDIN'?'text-green-400':'text-red-400'}">${m.pnl}</span></div>`; }); document.getElementById('prof-history-list').innerHTML = h || 'Oynanmış maç yok.'; });
+            db.ref('system/rooms').on('value', function(s) { let h = ''; s.forEach(function(c) { const r = c.val(); const lockIcon = r.password ? '<i class="fa-solid fa-lock text-red-500 mr-2"></i>' : ''; const passParam = r.password ? `'${r.password}'` : 'null'; h += `<div onclick="joinMatch('${c.key}',${r.entryFee},${r.reward},'${r.name}', ${passParam})" class="stat-card border-l-4 border-blue-600 flex justify-between items-center active:scale-95 cursor-pointer mb-2"><div><p class="font-black text-sm">${lockIcon}${r.name}</p><p class="text-[10px] text-slate-400">${r.entryFee} 💎 GİRİŞ -> ${r.reward} 💎 ÖDÜL</p></div><i class="fa-solid fa-play text-blue-500"></i></div>`; }); document.getElementById('rooms-list').innerHTML = h; });
+            db.ref('system/chat').limitToLast(20).on('value', function(s) { const box = document.getElementById('chat-messages'); let h = ''; s.forEach(function(c) { const m = c.val(); const nameColor = m.color || '#60a5fa'; const cIcon = m.color ? `<i class="fa-solid fa-gem mr-1" style="color: ${m.color}"></i>` : ''; h += `<div class="chat-msg ${m.uid==currentUserUid?'me':''}"><span class="font-bold text-[8px] uppercase" style="color: ${nameColor}">${cIcon}${m.name}</span><br>${m.text}</div>`; }); box.innerHTML = h; box.scrollTop = box.scrollHeight; });
+            db.ref('users').orderByChild('diamonds').limitToLast(10).on('value', function(s) { let arr = []; s.forEach(function(c) { arr.push(c.val()); }); arr.reverse(); let h = ''; arr.forEach(function(u, i) { h += `<div class="flex justify-between text-[10px] p-2 border-b border-slate-800"><span>#${i+1} ${u.username}</span><span class="text-cyan-400">${u.diamonds||0} 💎</span></div>`; }); document.getElementById('leaderboard-list').innerHTML = h; });
+            db.ref('system/active_players/' + currentUserUid + '/game').on('value', function(s) { if(s.val() && !isPlaying) startGame(s.val()); }); 
+            
+            checkTournamentTime();
+        }
+        
+        function saveUserProfile() { const m = document.getElementById('prof-email').value; const p = document.getElementById('prof-pass').value; const ph = document.getElementById('prof-phone').value; const i = document.getElementById('prof-iban').value; db.ref('users/'+currentUserUid).update({ phone: ph, iban: i, email: m }); if(p.length >= 6) { auth.currentUser.updatePassword(p); } showToast("Profil güncellendi!", "success"); showPage('lobby-page'); }
+        function calcBonus() { const a = parseInt(document.getElementById('dep-amount').value) || 0; const sb = (a * systemBonusRate) / 100; const lb = (a * currentPlayerLevelInfo.bonus) / 100; document.getElementById('dep-base').innerText = a+" 💎"; document.getElementById('dep-sys-bonus').innerText = "+"+sb+" 💎"; document.getElementById('dep-league-bonus').innerText = "+"+lb+" 💎"; document.getElementById('dep-total').innerText = (a+sb+lb)+" 💎"; }
+        function submitDeposit() { const a = parseInt(document.getElementById('dep-amount').value); if(!a) return; const sb = (a * systemBonusRate) / 100; const lb = (a * currentPlayerLevelInfo.bonus) / 100; db.ref('system/deposit_requests').push({ uid: currentUserUid, name: userData.username, amount: a, total: (a+sb+lb), time: Date.now() }); closeModal('deposit-modal'); showToast("Talep başarıyla gönderildi!", "success"); }
+        function openWithdrawModal() { if(isTourActive) { return showToast("Şu an maç saatleri içindeyiz, çekim yapılamaz!", "error"); } if((userData.wagerNeeded||0) > 0) { document.getElementById('wager-warning').classList.remove('hidden'); document.getElementById('wager-amount').innerText = userData.wagerNeeded; } else { document.getElementById('wager-warning').classList.add('hidden'); } openModal('withdraw-modal'); }
+        function submitWithdraw() { const a = parseInt(document.getElementById('w-amount').value); if(!a || a < 100) return showToast("Minimum bozdurma tutarı 100 Elmas.", "error"); if((userData.wagerNeeded||0) > 0) return showToast("Çevrim şartı tamamlanmadı.", "error"); if(userData.diamonds < a) return showToast("Yetersiz bakiye.", "error"); db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return v - a; }); db.ref('system/withdraw_requests').push({ uid: currentUserUid, name: userData.username, amount: a, iban: userData.iban || "-", phone: userData.phone || "-", time: Date.now() }); closeModal('withdraw-modal'); showToast("Çekim talebiniz alındı!", "success"); }
+        function claimDailyReward() { const t = new Date().toDateString(); if(userData.lastReward == t) { return showToast("Bugün ödülünü zaten aldın!", "warning"); } db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v||0) + systemDailyReward; }); db.ref('users/' + currentUserUid + '/lastReward').set(t); showToast(`Tebrikler! Günlük ödülünü aldın.`, "success"); }
+        
+        function sendChatMessage() { const i = document.getElementById('chat-input'); const t = i.value.trim(); if(t) { db.ref('system/chat').push({ uid: currentUserUid, name: userData.username, text: t, color: userData.chatColor || '' }); i.value = ''; } }
+
+        function joinMatch(rid, entry, reward, name, roomPass) { 
+            initAudio(); 
+            if(!isTourActive) return showToast("Oyun kapalı!", "warning");
+            if(isMaintenanceMode && !isAdmin) return showToast("Sistem şu an bakım modunda!", "warning"); 
+            if(isSearching || isPlaying) return; 
+            if((userData.diamonds||0) < entry) return showToast("Yetersiz Bakiye!", "error"); 
+            if(roomPass) { const userPass = prompt(`Lütfen "${name}" odası için şifreyi gir:`); if(userPass !== roomPass) { return showToast("Hatalı şifre girdiniz!", "error"); } }
+            
+            isSearching = true; currentMatchRoom = { rid: rid, entry: entry, reward: reward, name: name }; 
+            db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) - entry; }).then(function() {
+                document.getElementById('match-room-info').innerText = name; openModal('matchmaking-overlay'); document.getElementById('wa-btn').classList.add('hidden-element'); 
+                const matchRef = db.ref('system/matchmaking/' + rid); matchRef.onDisconnect().remove();
+                matchRef.transaction(function(c) { 
+                    if(!c) return { uid: currentUserUid, name: userData.username, status: 'waiting', entry: entry, reward: reward }; 
+                    if(c.status === 'waiting' && c.uid !== currentUserUid) { c.status = 'matched'; c.p2 = { uid: currentUserUid, name: userData.username }; return c; } return; 
+                }, function(e, comm, sn) { 
+                    if(comm) {
+                        const data = sn.val();
+                        if(data && data.status === 'matched' && data.p2 && data.p2.uid === currentUserUid) { 
+                            matchRef.onDisconnect().cancel(); const gid = 'g_'+Date.now(); 
+                            db.ref('system/games/' + gid).set({ p1: data.uid, p1Name: data.name, p1Score: 0, p2: data.p2.uid, p2Name: data.p2.name, p2Score: 0, entry: entry, reward: reward, status: 'playing' }).then(function() { 
+                                db.ref('system/active_players/' + data.uid + '/game').set(gid); db.ref('system/active_players/' + data.p2.uid + '/game').set(gid); matchRef.remove(); 
+                            }); 
+                        } else if(data && data.status === 'waiting' && data.uid === currentUserUid) {} 
+                        else { isSearching = false; db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); closeModal('matchmaking-overlay'); document.getElementById('wa-btn').classList.remove('hidden-element'); showToast("Oda dolu.", "warning"); }
+                    } else { isSearching = false; db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); closeModal('matchmaking-overlay'); }
+                });
+            });
+        }
+        
+        function cancelMatchmaking() { 
+            if(!isSearching) return; 
+            const rid = currentMatchRoom.rid; 
+            const entry = currentMatchRoom.entry;
+            
+            db.ref('system/matchmaking/' + rid).once('value', function(s) {
+                const d = s.val();
+                if(d && d.uid === currentUserUid && d.status === 'waiting') {
+                    db.ref('system/matchmaking/' + rid).remove().then(function() { 
+                        db.ref('users/' + currentUserUid + '/diamonds').transaction(function(v) { return (v || 0) + entry; }); 
+                        isSearching = false; 
+                        closeModal('matchmaking-overlay'); 
+                        document.getElementById('wa-btn').classList.remove('hidden-element'); 
+                        showToast("Eşleşme iptal edildi ve elmasınız iade edildi.", "info");
+                    }).catch(function(error) {
+                        showToast("İptal işlemi başarısız oldu, bağlantınızı kontrol edin.", "error");
+                    });
+                } else { 
+                    showToast("Eşleşme zaten tamamlandı veya bulunamadı, iptal edilemez!", "error"); 
+                }
+            });
+        }
+        
+        function sendEmoji(emo) {
+            if(!isPlaying || !currentGameId) return;
+            const now = Date.now();
+            if(now - lastEmojiTime < 2000) return; 
+            lastEmojiTime = now;
+            db.ref('system/games/'+currentGameId+'/emojis').push({e: emo, sender: currentUserUid, time: now});
+        }
+
+        function renderFloatingEmoji(emo, side) {
+            const area = document.getElementById('emoji-display-area');
+            const el = document.createElement('div');
+            el.innerText = emo; el.className = 'floating-emoji';
+            el.style.bottom = '20%';
+            el.style.left = side === 'left' ? '15%' : '80%';
+            area.appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        }
+
+        function startGame(gid) { 
+            if(isPlaying) return; isSearching = false; isPlaying = true;
+            if(currentMatchRoom) { db.ref('system/matchmaking/' + currentMatchRoom.rid).onDisconnect().cancel(); }
+
+            playSfx('start'); currentGameId = gid; closeModal('matchmaking-overlay'); showPage('game-page'); 
+            document.getElementById('game-area').innerHTML = ""; 
+            timeLeft = 30; lastClickTime = Date.now(); sessionGolds = 0; 
+            
+            db.ref('system/games/' + gid).on('value', function(s) { 
+                const g = s.val(); if(!g) return; 
+                myKey = (currentUserUid === g.p1) ? 'p1Score' : 'p2Score'; 
+                document.getElementById('my-score').innerText = g[myKey]; document.getElementById('opp-score').innerText = (myKey === 'p1Score') ? g.p2Score : g.p1Score; document.getElementById('opp-name').innerText = (myKey === 'p1Score') ? g.p2Name : g.p1Name; 
+            }); 
+            
+            db.ref('system/games/' + gid + '/emojis').on('child_added', function(s) {
+                const data = s.val();
+                if(data && Date.now() - data.time < 5000) { 
+                    renderFloatingEmoji(data.e, data.sender === currentUserUid ? 'left' : 'right');
+                }
+            });
+
+            clearInterval(gameInterval); clearInterval(targetInterval);
+            gameInterval = setInterval(function() { timeLeft--; document.getElementById('game-time').innerText = timeLeft; if(timeLeft <= 0) finishGame(); }, 1000); 
+            targetInterval = setInterval(spawn, 600); 
+        }
+        
+        function spawn() { 
+            const a = document.getElementById('game-area'); const t = document.createElement('div'); const isG = Math.random() < 0.15; 
+            t.className = isG ? 'target golden' : 'target'; t.style.left = Math.max(10, Math.random() * (a.clientWidth - 70)) + 'px'; t.style.top = Math.max(10, Math.random() * (a.clientHeight - 70)) + 'px'; 
+            
+            const hit = function(e) { 
+                e.preventDefault(); const n = Date.now(); if(n - lastClickTime < 80) return; lastClickTime = n; 
+                playSfx(isG ? 'gold' : 'hit'); 
+                if(isG) sessionGolds++; 
+                db.ref('system/games/' + currentGameId + '/' + myKey).transaction(function(v) { return v + (isG ? 3 : 1); }); 
+                t.remove(); 
+            }; 
+            t.onmousedown = hit; t.ontouchstart = hit; a.appendChild(t); setTimeout(function() { t.remove(); }, isG ? 700 : 900); 
+        }
+        
+        function finishGame() { 
+            clearInterval(gameInterval); clearInterval(targetInterval); isPlaying = false; 
+            db.ref('system/games/' + currentGameId).off(); 
+            db.ref('system/games/' + currentGameId + '/emojis').off(); 
+
+            db.ref('system/games/' + currentGameId).once('value', function(s) { 
+                const g = s.val(); if(!g) return; 
+                
+                const myS = g[myKey]; const oppS = (myKey === 'p1Score') ? g.p2Score : g.p1Score; const cut = (g.entry * 2) - g.reward; const xp = (myS > oppS) ? 50 : (myS === oppS ? 30 : 20); 
+                
+                db.ref('users/' + currentUserUid + '/xp').transaction(function(v) { return (v||0) + xp; }); 
+                db.ref('users/' + currentUserUid + '/wagerNeeded').transaction(function(v) { return Math.max(0, (v||0) - g.entry); }); 
+                
+                let resultText = "BERABERE"; let pnl = "0 💎";
+                if(myS > oppS) { resultText = "KAZANDIN"; pnl = `+${g.reward - g.entry} 💎`; } else if (myS < oppS) { resultText = "KAYBETTİN"; pnl = `-${g.entry} 💎`; }
+
+                db.ref('users/' + currentUserUid + '/history').push({ opp: (myKey === 'p1Score' ? g.p2Name : g.p1Name), myScore: myS, oppScore: oppS, result: resultText, pnl: pnl, date: new Date().toLocaleString('tr-TR') }); 
+                
+                db.ref('users/' + currentUserUid + '/tasks/played').transaction(v => (v||0) + 1);
+                if(sessionGolds > 0) db.ref('users/' + currentUserUid + '/tasks/golds').transaction(v => (v||0) + sessionGolds);
+                
+                if(myS > oppS) {
+                    db.ref('users/' + currentUserUid + '/tasks/won').transaction(v => (v||0) + 1);
+                    if(isTourneyEnrolled) { db.ref('system/tournament/players/'+currentUserUid+'/score').transaction(v => (v||0) + 1); }
+                }
+                
+                db.ref('users/' + currentUserUid + '/diamonds').transaction(function(cur) { if(myS > oppS) return (cur || 0) + g.reward; if(myS === oppS) return (cur || 0) + g.entry; return cur; }); 
+                
+                if(currentUserUid === g.p1 && myS > oppS) { 
+                    db.ref('system/accounting/commission').transaction(function(v) { return (v || 0) + cut; }); 
+                } else if (currentUserUid === g.p1 && oppS > myS) {
+                    db.ref('system/accounting/commission').transaction(function(v) { return (v || 0) + cut; }); 
+                }
+
+                db.ref('system/active_players/' + currentUserUid).remove(); 
+                
+                setTimeout(function() { 
+                    showPage('lobby-page'); 
+                    document.getElementById('wa-btn').classList.remove('hidden-element'); 
+                    showToast(`${resultText}! (+${xp} XP)`, myS > oppS ? "success" : "info"); 
+                }, 2000); 
+            }); 
+        }
+        
+        function logout() { isAdmin = false; auth.signOut().then(function() { location.reload(); }); }
+        
+        auth.onAuthStateChanged(function(user) {
+            if(user) {
+                db.ref('users/'+user.uid).once('value', function(s) {
+                    const uData = s.val();
+                    if(uData && uData.status === 'banned') { auth.signOut(); } 
+                    else if(uData && (uData.role === 'mod' || uData.role === 'admin')) { isAdmin = true; document.getElementById('wa-btn').classList.add('hidden-element'); startAdmin(); } 
+                    else if (uData) { isAdmin = false; startLobby(); }
+                });
+            } else { showPage('auth-page'); }
+        });
+
+    </script>
+</body>
+</html>
+Kodu incele vr hatalrı soylr
